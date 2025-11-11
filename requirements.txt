@@ -1,0 +1,12 @@
+Flask
+Flask-SQLAlchemy
+Flask-JWT-Extended    # For Token-based Authentication
+SQLAlchemy
+werkzeug              # For password hashing
+redis                 # For caching and Celery broker
+celery
+python-dotenv
+requests              # For sending reminders (Google Chat Webhook, etc.)
+Jinja2                # For Monthly Report HTML/PDF generation
+flask_security 
+argon2_cffi

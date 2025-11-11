@@ -1,0 +1,36 @@
+# .gitignore for HMS-V2 (Python, Flask, Vue, SQLite, Redis)
+
+# --- Python & Virtual Environments ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv
+venv/
+env/
+pip-log.txt
+pip-delete-this-log.txt
+.python-version
+
+# --- Flask & Application Files ---
+instance/
+.flaskenv
+*.sqlite
+*.db # Matches hms_v2.db
+
+# --- VueJS & Node ---
+node_modules/
+/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.idea/
+.vscode/
+
+# --- Redis/Celery ---
+# Celery worker/beat state files (if used for complex state tracking)
+# .celery/
+
+# --- Operating System Files ---
+.DS_Store
+Thumbs.db
