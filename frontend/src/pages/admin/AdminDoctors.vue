@@ -47,7 +47,7 @@
               </td>
               <td class="text-end">
                 <button 
-                  class="btn btn-sm me-2 " 
+                  class="btn btn-sm me-2" 
                   :class="doc.active ? 'btn-outline-warning' : 'btn-outline-success'"
                   @click="toggleStatus(doc)"
                   title="Toggle Status"
@@ -68,39 +68,63 @@
     </div>
 
     <div class="modal fade" id="docModal" tabindex="-1" ref="modalRef">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
+      <div class="modal-dialog modal-dialog-centered modal-lg"> <div class="modal-content border-0 shadow">
           <div class="modal-header bg-primary text-white">
             <h5 class="modal-title fw-bold">{{ isEdit ? 'Edit Doctor' : 'Add New Doctor' }}</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body p-4">
             <form @submit.prevent="saveDoctor">
-              <div class="mb-3">
-                <label class="form-label small fw-bold text-muted">FULL NAME</label>
-                <input v-model="form.name" class="form-control" required>
+              
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label small fw-bold text-muted">FULL NAME</label>
+                  <input v-model="form.name" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-bold text-muted">EMAIL</label>
+                  <input v-model="form.email" type="email" class="form-control" :disabled="isEdit" required>
+                </div>
               </div>
-              <div class="mb-3">
-                <label class="form-label small fw-bold text-muted">EMAIL</label>
-                <input v-model="form.email" type="email" class="form-control" :disabled="isEdit" required>
+
+              <div class="row g-3 mt-1" v-if="!isEdit">
+                <div class="col-12">
+                  <label class="form-label small fw-bold text-muted">PASSWORD</label>
+                  <input v-model="form.password" type="password" class="form-control" required>
+                </div>
               </div>
-              <div class="mb-3" v-if="!isEdit">
-                <label class="form-label small fw-bold text-muted">PASSWORD</label>
-                <input v-model="form.password" type="password" class="form-control" required>
+
+              <div class="row g-3 mt-1">
+                <div class="col-md-6">
+                  <label class="form-label small fw-bold text-muted">SPECIALIZATION</label>
+                  <select v-model="form.specialization" class="form-select" required>
+                    <option value="" disabled>Select...</option>
+                    <option v-for="s in specializations" :key="s.id" :value="s.name">{{ s.name }}</option>
+                  </select>
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="form-label small fw-bold text-muted">EXPERIENCE (YEARS)</label>
+                  <input v-model="form.experience" type="number" min="0" class="form-control" placeholder="e.g. 5">
+                </div>
               </div>
-              <div class="mb-3">
-                <label class="form-label small fw-bold text-muted">SPECIALIZATION</label>
-                <select v-model="form.specialization" class="form-select" required>
-                  <option value="" disabled>Select...</option>
-                  <option v-for="s in specializations" :key="s.id" :value="s.name">{{ s.name }}</option>
-                </select>
+
+              <div class="row g-3 mt-1">
+                <div class="col-12">
+                   <label class="form-label small fw-bold text-muted">ADDRESS</label>
+                   <input v-model="form.address" class="form-control" placeholder="Street, City">
+                </div>
               </div>
-              <div class="mb-3">
-                 <label class="form-label small fw-bold text-muted">ADDRESS</label>
-                 <input v-model="form.address" class="form-control">
+
+              <div class="row g-3 mt-1">
+                <div class="col-12">
+                  <label class="form-label small fw-bold text-muted">BIO / DETAILS</label>
+                  <textarea v-model="form.bio" class="form-control" rows="3" placeholder="Brief description about the doctor's background..."></textarea>
+                </div>
               </div>
+
               <div class="d-grid mt-4">
-                <button type="submit" class="btn btn-primary rounded-pill">{{ isEdit ? 'Update Profile' : 'Create Account' }}</button>
+                <button type="submit" class="btn btn-primary rounded-pill btn-lg">{{ isEdit ? 'Update Profile' : 'Create Account' }}</button>
               </div>
             </form>
           </div>
@@ -122,7 +146,18 @@ const modalRef = ref(null);
 let modalInstance = null;
 
 const isEdit = ref(false);
-const form = ref({ id: null, name: '', email: '', password: '', specialization: '', address: '', pincode: '000000' });
+// Added experience and bio to form
+const form = ref({ 
+  id: null, 
+  name: '', 
+  email: '', 
+  password: '', 
+  specialization: '', 
+  address: '', 
+  pincode: '000000',
+  experience: 0, 
+  bio: '' 
+});
 
 const filteredDoctors = computed(() => {
   const q = search.value.toLowerCase();
@@ -140,7 +175,6 @@ const fetchData = async () => {
   } catch (e) { console.error(e); }
 };
 
-// --- NEW: Toggle Status Function ---
 const toggleStatus = async (doc) => {
   const newStatus = !doc.active;
   const action = newStatus ? "Activate" : "Blacklist";
@@ -148,21 +182,30 @@ const toggleStatus = async (doc) => {
   if (!confirm(`Are you sure you want to ${action} Dr. ${doc.name}?`)) return;
 
   try {
-    // Send update to backend
     await api.put(`/users/${doc.id}`, { active: newStatus });
-    
-    // Optimistic update (update UI immediately without reload)
     doc.active = newStatus;
   } catch (error) {
     alert("Failed to update status: " + error.message);
   }
 };
-// -----------------------------------
 
 const openModal = (doc = null) => {
   isEdit.value = !!doc;
-  if (doc) form.value = { ...doc, password: '' };
-  else form.value = { name: '', email: '', password: '', specialization: '', address: '', pincode: '000000' };
+  if (doc) {
+    // Populate with existing data (including bio/exp)
+    form.value = { 
+      ...doc, 
+      password: '',
+      experience: doc.experience || 0,
+      bio: doc.bio || ''
+    };
+  } else {
+    // Reset form
+    form.value = { 
+      name: '', email: '', password: '', specialization: '', address: '', 
+      pincode: '000000', experience: 0, bio: '' 
+    };
+  }
   modalInstance.show();
 };
 

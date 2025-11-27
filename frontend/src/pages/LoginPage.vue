@@ -105,7 +105,7 @@ const handleLogin = async () => {
     } else if (authStore.isDoctor) {
       router.push('/doctor/dashboard'); // Future placeholder
     } else {
-      router.push('/'); // Patients go to Home/Dashboard
+      router.push('/dashboard'); // Patients go to Home/Dashboard
     }
 
   } catch (error) {

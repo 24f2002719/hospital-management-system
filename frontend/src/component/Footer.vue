@@ -11,18 +11,58 @@
         </div>
 
         <div class="col-md-2 col-lg-2 col-xl-2 mx-auto mt-3">
-          <h5 class="text-uppercase mb-4 fw-bold">Products</h5>
-          <p>
-            <a href="#" class="text-white text-decoration-none hover-link">Appointments</a>
-          </p>
-          <p>
-            <a href="#" class="text-white text-decoration-none hover-link">Doctors</a>
-          </p>
-          <p>
-            <a href="#" class="text-white text-decoration-none hover-link">Treatments</a>
-          </p>
+          <h5 class="text-uppercase mb-4 fw-bold">Quick Links</h5>
+          
+          <template v-if="authStore.isAdmin">
+            <p>
+              <router-link to="/admin/dashboard" class="text-white text-decoration-none hover-link">Dashboard</router-link>
+            </p>
+            <p>
+              <router-link to="/admin/doctors" class="text-white text-decoration-none hover-link">Manage Doctors</router-link>
+            </p>
+            <p>
+              <router-link to="/admin/patients" class="text-white text-decoration-none hover-link">Manage Patients</router-link>
+            </p>
+          </template>
+
+          <template v-else-if="authStore.isDoctor">
+            <p>
+              <router-link to="/doctor/dashboard" class="text-white text-decoration-none hover-link">My Dashboard</router-link>
+            </p>
+            <p>
+              <router-link to="/doctor/appointments" class="text-white text-decoration-none hover-link">My Schedule</router-link>
+            </p>
+            <p>
+              <router-link to="/doctor/patients" class="text-white text-decoration-none hover-link">My Patients</router-link>
+            </p>
+          </template>
+
+          <template v-else-if="authStore.isPatient">
+            <p>
+              <router-link to="/book-appointment" class="text-white text-decoration-none hover-link">Book Appointment</router-link>
+            </p>
+            <p>
+              <router-link to="/my-appointments" class="text-white text-decoration-none hover-link">My Appointments</router-link>
+            </p>
+            <p>
+              <router-link to="/medical-history" class="text-white text-decoration-none hover-link">Medical History</router-link>
+            </p>
+          </template>
+
+          <template v-else>
+            <p>
+              <router-link to="/" class="text-white text-decoration-none hover-link">Home</router-link>
+            </p>
+            <p>
+              <router-link to="/login" class="text-white text-decoration-none hover-link">Login</router-link>
+            </p>
+            <p>
+              <router-link to="/signup" class="text-white text-decoration-none hover-link">Sign Up</router-link>
+            </p>
+          </template>
         </div>
 
+      
         
       </div>
 
@@ -40,12 +80,18 @@
 </template>
 
 <script setup>
-// No script logic needed for a static footer
+import { useAuthStore } from '@/stores/auth';
+const authStore = useAuthStore();
 </script>
 
 <style scoped>
+.hover-link {
+  transition: all 0.2s ease-in-out;
+  display: inline-block;
+}
 .hover-link:hover {
-  text-decoration: underline !important;
+  text-decoration: none !important;
   color: #0d6efd !important; /* Bootstrap Primary Color */
+  transform: translateX(5px); /* Subtle slide effect */
 }
 </style>

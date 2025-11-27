@@ -11,6 +11,12 @@ import DoctorDashboard from '@/pages/doctor/DoctorDashboard.vue';
 import DoctorAppointments from '@/pages/doctor/DoctorAppointments.vue';
 import DoctorPatients from '@/pages/doctor/DoctorPatients.vue';
 import DoctorAvailability from '@/pages/doctor/DoctorAvailability.vue';
+import PatientLayout from '@/pages/patient/PatientLayout.vue';
+import PatientDashboard from '@/pages/patient/PatientDashboard.vue';
+import PatientBookAppointment from '@/pages/patient/PatientBookAppointment.vue';
+import PatientMyAppointments from '@/pages/patient/PatientMyAppointments.vue';
+import PatientHistory from '@/pages/patient/PatientHistory.vue';
+
 import LoginPage from '@/pages/LoginPage.vue'
 
 import { useAuthStore } from '@/stores/auth';
@@ -18,7 +24,7 @@ import { useAuthStore } from '@/stores/auth';
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', name: 'Home', component: HomePage },
+    { path: '/', name: 'Home', component: HomePage, meta: { redirectIfLoggedIn: true }},
     { path: '/login', name: 'Login', component: import('@/pages/LoginPage.vue') },
     { path: '/signup', name: 'Signup', component: import('@/pages/SignupPage.vue') },
     {
@@ -45,6 +51,17 @@ const router = createRouter({
         { path: 'availability', component: DoctorAvailability },
       ]
     },
+    {
+      path: '/dashboard', // Default patient path
+      component: PatientLayout,
+      meta: { requiresAuth: true, role: 'patient' },
+      children: [
+        { path: '', component: PatientDashboard },
+        { path: '/book-appointment', component: PatientBookAppointment },
+        { path: '/my-appointments', component: PatientMyAppointments },
+        { path: '/medical-history', component: PatientHistory },
+      ]
+    },
     { 
       path: '/profile', 
       name: 'Profile', 
@@ -53,21 +70,39 @@ const router = createRouter({
     },
   ],
 })
-// Navigation Guard (Protects Admin Routes)
+
+// --- GLOBAL NAVIGATION GUARD ---
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   
-  // 1. Check if route requires auth
+  // 1. Check if user is trying to visit Login/Home while already logged in
+  if (to.meta.redirectIfLoggedIn && authStore.isAuthenticated) {
+    // Redirect them to their correct dashboard instead
+    if (authStore.isAdmin) return next('/admin/dashboard');
+    if (authStore.isDoctor) return next('/doctor/dashboard');
+    return next('/dashboard'); // Patient
+  }
+
+  // 2. Standard Auth Guard (Protect Admin/Patient/Doctor routes)
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return next('/login');
   }
-
   // 2. Check for Admin Role
   if (to.meta.role === 'admin' && !authStore.isAdmin) {
     alert("Access Denied: Admins Only");
     return next('/');
   }
 
+  // 3. Role Guard (Protect Admin pages from Patients, etc.)
+  if (to.meta.role) {
+    const userRoles = authStore.roles || [];
+    if (!userRoles.includes(to.meta.role)) {
+      alert("Unauthorized Access");
+      return next('/'); 
+    }
+  }
+
   next();
 });
+
 export default router

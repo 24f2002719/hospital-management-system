@@ -17,7 +17,7 @@
         <div class="card-body p-2">
           <nav class="nav nav-pills nav-fill gap-2 p-1">
             <router-link to="/doctor/dashboard" class="nav-link fw-bold rounded-pill" active-class="active shadow-sm">
-              📊 Overview
+              📊 Dashboard
             </router-link>
             <router-link to="/doctor/appointments" class="nav-link fw-bold rounded-pill" active-class="active shadow-sm">
               🩺 Appointments

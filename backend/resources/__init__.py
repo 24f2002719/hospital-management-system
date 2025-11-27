@@ -4,7 +4,9 @@ from flask_restful import Api
 from resources.appointment_resource import AppointmentListResource, AppointmentResource
 from resources.specialization_resource import SpecializationListResource, SpecializationResource
 from resources.treatment_resource import TreatmentListResource, TreatmentResource
-from resources.user_resource import UserListResource, UserResource, DoctorCreationResource, PatientHistoryResource
+from resources.user_resource import UserListResource, UserResource, DoctorCreationResource, PatientHistoryResource,PublicDoctorListResource
+
+
 
 
 
@@ -39,5 +41,5 @@ api.add_resource(UserResource, '/users/<int:user_id>')
 
 # Patient History (Admin/Doctor view)
 api.add_resource(PatientHistoryResource, '/patients/<int:user_id>/history')
-
+api.add_resource(PublicDoctorListResource, '/public/doctors')
 

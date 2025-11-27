@@ -28,8 +28,12 @@ def get_or_create_role(name, description):
 
 def seed_database():
     with app.app_context():
+        # --- RESET DATABASE (Only if starting fresh) ---
+        # db.drop_all() 
+        # db.create_all()
+        # -----------------------------------------------
+
         print("--- Seeding Roles ---")
-        # Ensure all roles exist, even if we don't create the admin user here
         admin_role = get_or_create_role('admin', 'Super Administrator') 
         doctor_role = get_or_create_role('doctor', 'Medical Doctor')
         patient_role = get_or_create_role('patient', 'Patient User')
@@ -50,8 +54,8 @@ def seed_database():
             specialization_objs.append(spec)
         db.session.commit()
 
-        # --- ADMIN SECTION REMOVED ---
-        # We skip creating the admin user as per your request.
+        # --- ADMIN SECTION ---
+        # Note: You said admin already exists, skipping creation
         print("--- Skipping Admin User Creation (Already Exists) ---")
 
         print("--- Seeding Doctors ---")
@@ -61,7 +65,6 @@ def seed_database():
             for i in range(10):
                 email = f"doctor{current_doc_count + i}@gmail.com"
                 
-                # Check if user exists to avoid duplicates
                 if User.query.filter_by(email=email).first(): 
                     continue
 
@@ -69,24 +72,29 @@ def seed_database():
                 d_user = User(
                     name=fake.name(),
                     email=email,
-                    password=hash_password("pass123"),
+                    password=hash_password("pass123"), # Fixed: was "pass123" in your code, keeping consistent
                     fs_uniquifier=str(uuid.uuid4()),
                     active=True,
                     address=fake.address(),
                     pincode=fake.postcode()
                 )
                 db.session.add(d_user)
-                db.session.flush() # Generates d_user.id
+                db.session.flush()
 
                 # 2. Assign Role
                 ur = UserRoles(user_id=d_user.id, role_id=doctor_role.id)
                 db.session.add(ur)
 
-                # 3. Create Doctor Profile
+                # 3. Create Doctor Profile (UPDATED)
                 spec = random.choice(specialization_objs)
-                new_doctor = Doctor(user_id=d_user.id, specialization_id=spec.id)
+                new_doctor = Doctor(
+                    user_id=d_user.id, 
+                    specialization_id=spec.id,
+                    experience_years=random.randint(2, 25), # <--- New Field
+                    bio=fake.paragraph(nb_sentences=3)      # <--- New Field
+                )
                 db.session.add(new_doctor)
-                db.session.flush() # Generates new_doctor.id
+                db.session.flush()
                 
                 doctor_objs.append(new_doctor)
                 
@@ -124,7 +132,7 @@ def seed_database():
                     pincode=fake.postcode()
                 )
                 db.session.add(p_user)
-                db.session.flush() # Generate p_user.id
+                db.session.flush()
 
                 ur = UserRoles(user_id=p_user.id, role_id=patient_role.id)
                 db.session.add(ur)
@@ -141,7 +149,6 @@ def seed_database():
         if doctor_objs and patient_objs:
             times = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
             
-            # Load existing slots to prevent UniqueConstraint errors
             existing_appts = Appointment.query.with_entities(Appointment.doctor_id, Appointment.appointment_date, Appointment.appointment_time).all()
             occupied_slots = set((d_id, date_obj, str(time_str)) for d_id, date_obj, time_str in existing_appts)
 
@@ -173,7 +180,7 @@ def seed_database():
                     status=status
                 )
                 db.session.add(appt)
-                db.session.flush() # Generate appt.id for treatment
+                db.session.flush()
 
                 if status == AppointmentStatus.COMPLETED:
                     food_item = fake.dish()

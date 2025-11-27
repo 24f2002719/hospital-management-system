@@ -55,6 +55,11 @@ class Doctor(BaseModel):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
     specialization_id = db.Column(db.Integer, db.ForeignKey('specialization.id'), nullable=False)
     
+    # --- ADD THESE TWO LINES ---
+    experience_years = db.Column(db.Integer, default=0)
+    bio = db.Column(db.Text, nullable=True) # Details/Description
+    # ---------------------------
+
     specialization = db.relationship('Specialization', backref='doctors')
     availabilities = db.relationship('DoctorAvailability', backref='doctor', lazy='dynamic')
     appointments = db.relationship('Appointment', backref='doctor', lazy='dynamic')

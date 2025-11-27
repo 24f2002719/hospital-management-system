@@ -1,7 +1,11 @@
 <template>
   <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm py-2">
     <div class="container">
-      <router-link class="navbar-brand fw-bold fs-4 text-primary d-flex align-items-center" to="/">
+      
+      <router-link 
+        class="navbar-brand fw-bold fs-4 text-primary d-flex align-items-center" 
+        :to="brandLink"
+      >
         Hospital Management System
       </router-link>
 
@@ -12,22 +16,21 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto align-items-center">
           
-        <li v-if="!authStore.isAuthenticated" class="nav-item">
+          <li v-if="!authStore.isAuthenticated" class="nav-item">
             <router-link class="nav-link fw-medium mx-2" to="/">Home</router-link>
-        </li>
+          </li>
           
           <li v-if="authStore.isAdmin" class="nav-item">
-             <router-link class="nav-link fw-medium mx-2 text-danger" to="/admin">Dashboard</router-link>
+             <router-link class="nav-link fw-medium mx-2 text-danger" to="/admin/dashboard">Dashboard</router-link>
           </li>
 
           <li v-if="authStore.isDoctor" class="nav-item">
-             <router-link class="nav-link fw-medium mx-2" to="/doctor/appointments">My Schedule</router-link>
+             <router-link class="nav-link fw-medium mx-2" to="/doctor/dashboard">Dashboard</router-link>
           </li>
 
           <li v-if="authStore.isPatient" class="nav-item">
-             <router-link class="nav-link fw-medium mx-2" to="/book-appointment">Book Now</router-link>
+             <router-link class="nav-link fw-medium mx-2" to="/dashboard">Dashboard</router-link>
           </li>
-
 
           <template v-if="!authStore.isAuthenticated">
             <li class="nav-item ms-2">
@@ -37,7 +40,6 @@
               <router-link class="btn btn-primary rounded-pill px-4" to="/signup">Sign Up</router-link>
             </li>
           </template>
-
 
           <li v-else class="nav-item dropdown ms-2">
             <a 
@@ -79,28 +81,39 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'; // Imported lifecycle hooks
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth'; 
 
 const router = useRouter();
 const authStore = useAuthStore();
-const isOpen = ref(false); // State to control dropdown
+const isOpen = ref(false);
 
-// --- Dropdown Logic ---
-const toggleDropdown = () => {
-  isOpen.value = !isOpen.value;
-};
+// --- 🟢 NEW: Logic for Brand Logo Link ---
+const brandLink = computed(() => {
+  if (!authStore.isAuthenticated) {
+    return '/'; // Guest -> Home
+  }
+  // Logged In -> Go to specific dashboard
+  if (authStore.isAdmin) return '/admin/dashboard';
+  if (authStore.isDoctor) return '/doctor/dashboard';
+  return '/dashboard'; // Patient
+});
 
-const closeDropdown = () => {
-  isOpen.value = false;
-};
+// Dropdown Logic
+const toggleDropdown = () => { isOpen.value = !isOpen.value; };
+const closeDropdown = () => { isOpen.value = false; };
 
-// Optional: Close dropdown if clicking outside
 const closeIfClickedOutside = (event) => {
   if (isOpen.value && !event.target.closest('.dropdown')) {
     isOpen.value = false;
   }
+};
+
+const handleLogout = () => {
+  closeDropdown();
+  authStore.logout();
+  router.push('/login');
 };
 
 onMounted(() => {
@@ -110,27 +123,12 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('click', closeIfClickedOutside);
 });
-// ----------------------
-
-
-const dashboardRoute = computed(() => {
-  if (authStore.isAdmin) return '/admin/dashboard';
-  if (authStore.isDoctor) return '/doctor/dashboard';
-  return '/dashboard'; 
-});
-
-const handleLogout = () => {
-  closeDropdown(); // Close menu
-  authStore.logout();
-  router.push('/login');
-};
 </script>
 
 <style scoped>
 .navbar-brand {
   letter-spacing: -0.5px;
 }
-/* Ensure the dropdown positions correctly when forced open via Vue */
 .dropdown-menu.show {
   display: block;
   position: absolute;
