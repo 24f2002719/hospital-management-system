@@ -6,6 +6,11 @@ import AdminDoctors from '@/pages/admin/AdminDoctors.vue';
 import AdminPatients from '@/pages/admin/AdminPatients.vue';
 import AdminAppointments from '@/pages/admin/AdminAppointments.vue';
 import ProfilePage from '@/pages/ProfilePage.vue';
+import DoctorLayout from '@/pages/doctor/DoctorLayout.vue';
+import DoctorDashboard from '@/pages/doctor/DoctorDashboard.vue';
+import DoctorAppointments from '@/pages/doctor/DoctorAppointments.vue';
+import DoctorPatients from '@/pages/doctor/DoctorPatients.vue';
+import DoctorAvailability from '@/pages/doctor/DoctorAvailability.vue';
 import LoginPage from '@/pages/LoginPage.vue'
 
 import { useAuthStore } from '@/stores/auth';
@@ -26,6 +31,18 @@ const router = createRouter({
         { path: 'doctors', component: AdminDoctors },
         { path: 'patients', component: AdminPatients },
         { path: 'appointments', component: AdminAppointments },
+      ]
+    },
+    {
+      path: '/doctor',
+      component: DoctorLayout,
+      meta: { requiresAuth: true, role: 'doctor' },
+      children: [
+        { path: '', redirect: '/doctor/dashboard' },
+        { path: 'dashboard', component: DoctorDashboard },
+        { path: 'appointments', component: DoctorAppointments },
+        { path: 'patients', component: DoctorPatients },
+        { path: 'availability', component: DoctorAvailability },
       ]
     },
     { 

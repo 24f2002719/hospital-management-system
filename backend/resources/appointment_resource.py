@@ -1,6 +1,6 @@
 from flask import request
 from flask_restful import Resource
-from flask_security import auth_token_required # <--- Ensure this is imported
+from flask_security import auth_token_required 
 from services.appointment_service import AppointmentService
 
 # --- HELPER FUNCTION ---
@@ -10,7 +10,7 @@ def to_dict(appt):
     """
     return {
         "id": appt.id,
-        "appointment_date": str(appt.appointment_date),  # Changed key to match frontend (appointment_date)
+        "appointment_date": str(appt.appointment_date), 
         "appointment_time": appt.appointment_time,
         
         # Status
@@ -20,11 +20,11 @@ def to_dict(appt):
         "patient_name": appt.patient.user.name if (appt.patient and appt.patient.user) else "Unknown",
         "doctor_name": appt.doctor.user.name if (appt.doctor and appt.doctor.user) else "Unknown",
         
-        # --- NEW FIELDS FOR ADMIN DASHBOARD ---
+        # --- FIELDS FOR DASHBOARDS ---
         "specialization": appt.doctor.specialization.name if (appt.doctor and appt.doctor.specialization) else "General",
-        "patient_id_user": appt.patient.user.id if (appt.patient and appt.patient.user) else None, # <--- Needed for History
-        # --------------------------------------
-
+        "patient_id_user": appt.patient.user.id if (appt.patient and appt.patient.user) else None,
+        
+        # IDs
         "patient_id": appt.patient_id,
         "doctor_id": appt.doctor_id
     }
@@ -32,10 +32,16 @@ def to_dict(appt):
 # --- LIST RESOURCE ---
 class AppointmentListResource(Resource):
     
-    @auth_token_required # Recommended to protect this
+    @auth_token_required 
     def get(self):
         """ GET /api/appointments """
+        # Get filtered appointments based on role
         appointments = AppointmentService.get_all_appointments()
+        
+        # Sort by date (Newest first)
+        # We use a lambda to handle potential None values gracefully, though DB should enforce non-null
+        appointments.sort(key=lambda x: x.appointment_date, reverse=True)
+        
         return [to_dict(a) for a in appointments], 200
 
     @auth_token_required

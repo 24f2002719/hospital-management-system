@@ -1,12 +1,35 @@
 from models import db, Appointment, Doctor, Patient, DoctorAvailability, AppointmentStatus
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
+from flask_security import current_user  # <--- Import this
 
 class AppointmentService:
 
     @staticmethod
     def get_all_appointments():
-        return Appointment.query.all()
+        """
+        Returns appointments filtered by the logged-in user's role.
+        """
+        # 1. Admin: See EVERYTHING
+        if current_user.has_role('admin'):
+            return Appointment.query.all()
+
+        # 2. Doctor: See ONLY their own appointments
+        elif current_user.has_role('doctor'):
+            # Safety check: Ensure the user actually has a doctor profile
+            if not current_user.doctor_profile:
+                return [] 
+            return Appointment.query.filter_by(doctor_id=current_user.doctor_profile.id).all()
+
+        # 3. Patient: See ONLY their own appointments
+        elif current_user.has_role('patient'):
+            # Safety check
+            if not current_user.patient_profile:
+                return []
+            return Appointment.query.filter_by(patient_id=current_user.patient_profile.id).all()
+
+        # Default: Return empty list if no role matches
+        return []
 
     @staticmethod
     def get_appointment_by_id(appt_id):
@@ -14,7 +37,6 @@ class AppointmentService:
 
     @staticmethod
     def book_appointment(patient_user_id, doctor_id, date_str, time_str):
-        # 1. Find Patient
         # 1. Find Patient
         patient = Patient.query.filter_by(user_id=patient_user_id).first()
         
@@ -25,12 +47,12 @@ class AppointmentService:
             valid_ids = [p.user_id for p in all_patients]
             print(f"👉 VALID USER IDs: {valid_ids}")
             
-            # Check database file location
             print(f"📂 Database File being used: {db.engine.url}")
             print("-" * 30)
             # --- DEBUGGING BLOCK END ---
             
             return None, f"Patient profile not found. Valid User IDs are: {valid_ids}"
+        
         # 2. Parse Date
         try:
             appt_date = datetime.strptime(date_str, '%Y-%m-%d').date()
@@ -63,7 +85,6 @@ class AppointmentService:
             db.session.add(new_appt)
             db.session.commit()
             
-            # 🔥 IMPORTANT: Refresh to get the ID and formatted Date back from DB
             db.session.refresh(new_appt)
             
             return new_appt, "Appointment booked successfully."
@@ -83,7 +104,13 @@ class AppointmentService:
         # Update Status
         if 'status' in data:
             try:
-                appt.status = AppointmentStatus(data['status'])
+                # Handle Enum conversion safely
+                status_str = data['status']
+                # If the string matches the Enum value (e.g. 'Booked')
+                if status_str in AppointmentStatus._value2member_map_:
+                    appt.status = AppointmentStatus(status_str)
+                else:
+                    return None, f"Invalid Status: {status_str}"
             except ValueError:
                 return None, "Invalid Status."
 
