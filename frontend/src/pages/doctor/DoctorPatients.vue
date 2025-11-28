@@ -163,7 +163,7 @@ const filteredPatients = computed(() => {
 // --- 2. Fetch Data ---
 const fetchData = async () => {
   try {
-    // This returns ONLY this doctor's appointments (handled by backend logic we wrote earlier)
+    //  returns ONLY this doctor's appointments (handled by backend logic we wrote earlier)
     const data = await api.get('/appointments');
     appointments.value = Array.isArray(data) ? data : [];
   } catch (error) {

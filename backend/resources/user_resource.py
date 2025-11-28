@@ -32,7 +32,7 @@ class UserResource(Resource):
     def delete(self, user_id):
         return UserService.delete_user(user_id)
 
-# 4. Patient History Resource
+# 4. Patient History Resource (Updated)
 class PatientHistoryResource(Resource):
     @auth_token_required
     def get(self, user_id):

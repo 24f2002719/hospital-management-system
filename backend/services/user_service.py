@@ -50,13 +50,13 @@ class UserService:
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "address": user.address,   # <--- ADDED THIS
-                "pincode": user.pincode,   # <--- ADDED THIS
+                "address": user.address,   
+                "pincode": user.pincode,   
                 "roles": roles,
                 "type": user_type,
                 "specialization": spec,
-                "experience": exp,         # <--- ADDED THIS
-                "bio": bio,                # <--- ADDED THIS
+                "experience": exp,         
+                "bio": bio,                
                 "active": user.active
             })
         return result, 200
