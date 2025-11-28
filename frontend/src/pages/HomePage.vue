@@ -59,7 +59,7 @@
                     <div class="d-flex align-items-center gap-3 p-4 rounded-4 shadow-sm bg-white">
                         <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
                                  style="width:64px;height:64px;background:linear-gradient(135deg,#0d6efd,#6610f2);color:white;font-size:1.25rem;box-shadow:0 8px 20px rgba(13,110,253,0.12);">
-                            <!-- doctor / stethoscope icon -->
+                            
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <path d="M20 7v5a4 4 0 0 1-8 0V7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
                                 <path d="M12 7V5a2 2 0 1 0-4 0v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>

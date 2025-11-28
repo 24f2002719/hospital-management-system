@@ -103,7 +103,7 @@ const handleLogin = async () => {
     if (authStore.isAdmin) {
       router.push('/admin/dashboard');
     } else if (authStore.isDoctor) {
-      router.push('/doctor/dashboard'); // Future placeholder
+      router.push('/doctor/dashboard'); 
     } else {
       router.push('/dashboard'); // Patients go to Home/Dashboard
     }

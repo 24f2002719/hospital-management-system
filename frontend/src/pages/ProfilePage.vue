@@ -108,7 +108,7 @@ const authStore = useAuthStore();
 const isLoading = ref(false);
 const successMessage = ref('');
 const errorMessage = ref('');
-const specialization = ref(''); // For doctors only
+const specialization = ref(''); 
 
 const form = ref({
   name: '',

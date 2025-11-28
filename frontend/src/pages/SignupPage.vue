@@ -158,7 +158,6 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
-// State
 const form = reactive({
   name: '',
   email: '',
