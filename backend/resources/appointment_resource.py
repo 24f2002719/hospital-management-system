@@ -3,6 +3,7 @@ from flask_restful import Resource
 from flask_security import auth_token_required 
 from services.appointment_service import AppointmentService
 from flask_security import current_user
+from database import cache
 
 # --- HELPER FUNCTION ---
 def to_dict(appt):
@@ -90,9 +91,20 @@ class AppointmentResource(Resource):
             return {"message": message}, 404
         
 class DoctorAvailabilityResource(Resource):
+    
+    # We use make_cache_key to create unique keys per doctor + date
+    # key will look like: "hms_slots_doctor_5_date_2025-11-28"
+    def _make_cache_key(self):
+        doctor_id = request.view_args['doctor_id']
+        date_str = request.args.get('date')
+        return f"slots_doctor_{doctor_id}_date_{date_str}"
+
+    @auth_token_required
+    @cache.cached(timeout=60, key_prefix=_make_cache_key) # <--- Dynamic Cache Key
     def get(self, doctor_id):
         """
         GET /api/doctors/<int:doctor_id>/slots?date=YYYY-MM-DD
+        Cached for 60 seconds to reduce DB load.
         """
         date_str = request.args.get('date')
         if not date_str:
@@ -101,8 +113,6 @@ class DoctorAvailabilityResource(Resource):
         slots, error = AppointmentService.get_available_slots(doctor_id, date_str)
         
         if error:
-            # We return 200 with empty list so frontend just shows "No slots"
-            # instead of crashing on error
             return {"slots": [], "message": error}, 200
             
         return {"slots": slots}, 200

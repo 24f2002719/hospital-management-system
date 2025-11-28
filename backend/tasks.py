@@ -1,5 +1,6 @@
 from celery_worker import celery
 from flask_mail import Message 
+from database import cache
 from flask import current_app
 from models import db, User, Appointment, Doctor, AppointmentStatus
 from datetime import datetime, timedelta

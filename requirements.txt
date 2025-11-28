@@ -18,3 +18,4 @@ flask-cors
 flask-mail
 weasyprint            # For PDF generation from HTML
 eventlet               # For asynchronous task handling with Celery
+Flask-Caching      # For caching support

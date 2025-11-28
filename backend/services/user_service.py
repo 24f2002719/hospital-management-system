@@ -2,6 +2,8 @@ from models import User, Doctor, Specialization, Role, db
 from flask_security import current_user
 from flask_security.utils import hash_password
 from flask import current_app
+from database import cache
+
 
 class UserService:
     
@@ -101,6 +103,7 @@ class UserService:
 
             db.session.add(new_doc)
             db.session.commit()
+            cache.delete('public_doctors_list')
             
             return {"message": "Doctor created successfully", "id": user.id}, 201
         except Exception as e:

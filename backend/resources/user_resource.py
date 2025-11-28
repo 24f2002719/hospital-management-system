@@ -3,6 +3,7 @@ from flask_restful import Resource
 from flask_security import auth_token_required, current_user
 from services.user_service import UserService
 from models import Patient, AppointmentStatus
+from database import cache
 
 
 # 1. Resource for Listing Users (GET - Admin)
@@ -63,8 +64,12 @@ class PatientHistoryResource(Resource):
 # 5. Public Doctor List (For Patients)
 class PublicDoctorListResource(Resource):
     @auth_token_required
+    @cache.cached(timeout=600, key_prefix='public_doctors_list') # <--- CACHE THIS
     def get(self):
-        """ GET /api/public/doctors """
+        """ 
+        GET /api/public/doctors 
+        Cached for 10 minutes (600s).
+        """
         return UserService.get_public_doctors()
 
 class ExportHistoryResource(Resource):

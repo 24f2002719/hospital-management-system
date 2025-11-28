@@ -2,8 +2,11 @@ from flask import Flask
 from models import *
 from config import LocalDevelopmentConfig
 from flask_cors import CORS
-from flask_mail import Mail # 1. Import Mail
+
 from flask_security import Security, SQLAlchemyUserDatastore
+from database import cache, mail
+
+
 # Note: Ensure you have 'security' object defined in 'database.py' or import Security class directly
 from database import security 
 
@@ -13,12 +16,17 @@ app.config.from_object(LocalDevelopmentConfig)
 
 # Initialize DB
 db.init_app(app)
+cache.init_app(app) # <--- Init Cache
+mail.init_app(app)  # <--- Init Mail
 
 # Initialize CORS
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
-# Initialize Mail (CRITICAL: Must be done here so tasks.py can import it)
-mail = Mail(app)
+# # Initialize Mail (CRITICAL: Must be done here so tasks.py can import it)
+# mail = Mail(app)
+
+# # 2. Initialize Cache
+# cache = Cache(app)
 
 # Initialize Security
 datastore = SQLAlchemyUserDatastore(db, User, Role)

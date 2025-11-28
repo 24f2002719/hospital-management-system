@@ -20,6 +20,11 @@ class BaseConfig:
     MAIL_PASSWORD = None
     MAIL_DEFAULT_SENDER = 'noreply@hospital.com'
 
+    CACHE_TYPE = "RedisCache"
+    CACHE_REDIS_URL = "redis://127.0.0.1:6379/0"
+    CACHE_DEFAULT_TIMEOUT = 300  # Default cache life: 5 minutes
+    CACHE_KEY_PREFIX = "hms_"    # Prefix for keys in Redis
+
 class LocalDevelopmentConfig(BaseConfig):
     SQLALCHEMY_DATABASE_URI = "sqlite:///database.sqlite3"
     debug = True
