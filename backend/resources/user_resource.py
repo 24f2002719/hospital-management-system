@@ -1,8 +1,9 @@
 from flask import request
 from flask_restful import Resource
-from flask_security import auth_token_required
+from flask_security import auth_token_required, current_user
 from services.user_service import UserService
-from models import Patient, AppointmentStatus 
+from models import Patient, AppointmentStatus
+
 
 # 1. Resource for Listing Users (GET - Admin)
 class UserListResource(Resource):
@@ -32,7 +33,7 @@ class UserResource(Resource):
     def delete(self, user_id):
         return UserService.delete_user(user_id)
 
-# 4. Patient History Resource (Updated)
+# 4. Patient History Resource
 class PatientHistoryResource(Resource):
     @auth_token_required
     def get(self, user_id):
@@ -59,9 +60,25 @@ class PatientHistoryResource(Resource):
         history.sort(key=lambda x: x['date'], reverse=True)
         return history, 200
 
-# 5. NEW: Public Doctor List (For Patients)
+# 5. Public Doctor List (For Patients)
 class PublicDoctorListResource(Resource):
     @auth_token_required
     def get(self):
         """ GET /api/public/doctors """
         return UserService.get_public_doctors()
+
+class ExportHistoryResource(Resource):
+    @auth_token_required
+    def post(self):
+        """
+        Trigger the async CSV export job.
+        URL: /api/export/history
+        """
+        # --- FIX: Import the task INSIDE the function ---
+        from tasks import export_patient_history 
+        # ------------------------------------------------
+
+        # Now it is defined and can be used
+        export_patient_history.delay(current_user.id, current_user.email)
+        
+        return {"message": "Export started! You will receive an email shortly."}, 200

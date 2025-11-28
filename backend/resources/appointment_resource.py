@@ -2,6 +2,7 @@ from flask import request
 from flask_restful import Resource
 from flask_security import auth_token_required 
 from services.appointment_service import AppointmentService
+from flask_security import current_user
 
 # --- HELPER FUNCTION ---
 def to_dict(appt):
@@ -87,3 +88,43 @@ class AppointmentResource(Resource):
             return {"message": message}, 200
         else:
             return {"message": message}, 404
+        
+class DoctorAvailabilityResource(Resource):
+    def get(self, doctor_id):
+        """
+        GET /api/doctors/<int:doctor_id>/slots?date=YYYY-MM-DD
+        """
+        date_str = request.args.get('date')
+        if not date_str:
+            return {"message": "Date parameter is required"}, 400
+            
+        slots, error = AppointmentService.get_available_slots(doctor_id, date_str)
+        
+        if error:
+            # We return 200 with empty list so frontend just shows "No slots"
+            # instead of crashing on error
+            return {"slots": [], "message": error}, 200
+            
+        return {"slots": slots}, 200
+    
+class DoctorAvailabilityManageResource(Resource):
+    @auth_token_required
+    def post(self):
+        """
+        POST /api/doctor/availability
+        Body: [ { "date": "2025-11-28", "slots": "09:00,10:00" }, ... ]
+        """
+        # Security Check
+        if not current_user.has_role('doctor') or not current_user.doctor_profile:
+            return {"message": "Unauthorized. Only doctors can set availability."}, 403
+
+        data = request.get_json() # Expecting a list
+        
+        success, message = AppointmentService.set_availability(
+            doctor_id=current_user.doctor_profile.id,
+            availability_data=data
+        )
+        
+        if success:
+            return {"message": message}, 200
+        return {"message": message}, 400

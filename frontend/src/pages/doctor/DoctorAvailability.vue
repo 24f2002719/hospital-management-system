@@ -105,8 +105,7 @@ const initSchedule = () => {
       dbDate: d.toISOString().split('T')[0], // YYYY-MM-DD
       active: i < 5, // Default Mon-Fri active
       startTime: "09:00",
-      endTime: "17:00",
-      generatedString: "" // This is what gets sent to DB
+      endTime: "17:00"
     });
   }
   schedule.value = days;
@@ -114,6 +113,7 @@ const initSchedule = () => {
 
 // 2. Helper: Convert Time "09:00" to Minutes (540)
 const toMinutes = (timeStr) => {
+  if (!timeStr) return 0;
   const [h, m] = timeStr.split(':').map(Number);
   return h * 60 + m;
 };
@@ -150,48 +150,42 @@ const countSlots = (day) => {
   return generateSlotsPreview(day.startTime, day.endTime).length;
 };
 
-// 6. Save to Backend
+// 6. Save to Backend (UPDATED)
 const saveAvailability = async () => {
   loading.value = true;
   
   try {
-    // Transform our friendly UI object into the specific format the backend expects
-    // Backend expects: { doctor_id, available_date, available_slots: "09:00,10:00" }
-    
-    // We iterate through days, generate the string, and send API requests
-    // Note: In a real app, you might send one bulk array. Here we loop for simplicity with your existing backend.
-    
+    const payload = [];
+
+    // Loop through days and prepare data for backend
     for (const day of schedule.value) {
       if (day.active) {
         const slotArray = generateSlotsPreview(day.startTime, day.endTime);
-        const slotString = slotArray.join(','); // "09:00,10:00,11:00"
+        const slotString = slotArray.join(',');
 
         if (slotString) {
-          // This matches your backend AppointmentService logic
-          // You need an endpoint like POST /availability or logic inside user update
-          // For now, let's assume we post availability per day
-          
-          // NOTE: You probably need to create this endpoint in Flask if it doesn't exist yet
-          // Or update your existing user/doctor update endpoint to accept this.
-          
-          console.log(`Saving ${day.dbDate}: ${slotString}`);
-          
-          // Example API call (Uncomment when backend endpoint is ready)
-          // await api.post('/doctor/availability', { 
-          //   date: day.dbDate, 
-          //   slots: slotString 
-          // });
+          payload.push({
+            date: day.dbDate, // "2025-11-28"
+            slots: slotString // "09:00,10:00..."
+          });
         }
       }
     }
 
-    // Simulation delay
-    await new Promise(r => setTimeout(r, 800));
-    alert("Availability schedule updated successfully!");
+    if (payload.length === 0) {
+      alert("No active days selected. Please enable at least one day.");
+      loading.value = false;
+      return;
+    }
+
+    // Send the array to the backend endpoint we created
+    await api.post('/doctor/availability', payload);
+    
+    alert("Availability schedule updated successfully! Patients can now book these slots.");
     
   } catch (e) {
     console.error(e);
-    alert("Failed to update availability.");
+    alert("Failed to update availability: " + (e.message || "Unknown Error"));
   } finally {
     loading.value = false;
   }

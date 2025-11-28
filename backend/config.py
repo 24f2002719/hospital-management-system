@@ -6,6 +6,20 @@ load_dotenv()
 class BaseConfig:
     SQLALCHEMY_TRACK_MODIFICATION = False
 
+    # --- CELERY CONFIG ---
+    CELERY_BROKER_URL = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND = "redis://localhost:6379/1"
+    CELERY_TIMEZONE = "Asia/Kolkata" # Change to your timezone
+
+    # --- FLASK MAIL (MailHog) ---
+    MAIL_SERVER = 'localhost'
+    MAIL_PORT = 1025
+    MAIL_USE_TLS = False
+    MAIL_USE_SSL = False
+    MAIL_USERNAME = None
+    MAIL_PASSWORD = None
+    MAIL_DEFAULT_SENDER = 'noreply@hospital.com'
+
 class LocalDevelopmentConfig(BaseConfig):
     SQLALCHEMY_DATABASE_URI = "sqlite:///database.sqlite3"
     debug = True

@@ -1,44 +1,42 @@
 from flask import Flask
 from models import *
 from config import LocalDevelopmentConfig
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
-from resources import auth_bp, api,api_bp
 from flask_cors import CORS
+from flask_mail import Mail # 1. Import Mail
+from flask_security import Security, SQLAlchemyUserDatastore
+# Note: Ensure you have 'security' object defined in 'database.py' or import Security class directly
+from database import security 
 
+# --- 1. INITIALIZE APP & EXTENSIONS GLOBALLY ---
+app = Flask(__name__)
+app.config.from_object(LocalDevelopmentConfig)
 
+# Initialize DB
+db.init_app(app)
 
+# Initialize CORS
+CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
-def create_app():
-    app = Flask(__name__)
+# Initialize Mail (CRITICAL: Must be done here so tasks.py can import it)
+mail = Mail(app)
 
-    
+# Initialize Security
+datastore = SQLAlchemyUserDatastore(db, User, Role)
+security.init_app(app, datastore)
+app.datastore = datastore
 
-    app.config.from_object(LocalDevelopmentConfig)
-    db.init_app(app)
+# --- 2. IMPORT & REGISTER BLUEPRINTS (DO THIS LAST) ---
+# We import resources here to avoid "Circular Import" errors.
+# If we import at the top, resources will try to load tasks, 
+# which try to load 'mail' from app, which wouldn't exist yet!
+from resources import auth_bp, api_bp 
 
-    CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
-    # For Flask Sequrity
-    from flask_security.datastore import SQLAlchemyUserDatastore
-    from database import security
+app.register_blueprint(auth_bp)
+app.register_blueprint(api_bp)
 
-    datastore = SQLAlchemyUserDatastore(db,User,Role)
-    security.init_app(app, datastore)
-
-    app.datastore = datastore
-
-    # Blueprint
-    app.register_blueprint(auth_bp)
-
-    #Flask Restful API
-    app.register_blueprint(api_bp)
-
-
-    with app.app_context():
-        db.create_all()
-    return app
-
-app = create_app()
+# --- 3. CREATE DATABASE TABLES ---
+with app.app_context():
+    db.create_all()
 
 @app.route("/")
 def home():

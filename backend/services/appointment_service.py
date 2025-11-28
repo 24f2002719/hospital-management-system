@@ -1,7 +1,7 @@
 from models import db, Appointment, Doctor, Patient, DoctorAvailability, AppointmentStatus
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
-from flask_security import current_user  # <--- Import this
+from flask_security import current_user
 
 class AppointmentService:
 
@@ -16,19 +16,16 @@ class AppointmentService:
 
         # 2. Doctor: See ONLY their own appointments
         elif current_user.has_role('doctor'):
-            # Safety check: Ensure the user actually has a doctor profile
             if not current_user.doctor_profile:
                 return [] 
             return Appointment.query.filter_by(doctor_id=current_user.doctor_profile.id).all()
 
         # 3. Patient: See ONLY their own appointments
         elif current_user.has_role('patient'):
-            # Safety check
             if not current_user.patient_profile:
                 return []
             return Appointment.query.filter_by(patient_id=current_user.patient_profile.id).all()
 
-        # Default: Return empty list if no role matches
         return []
 
     @staticmethod
@@ -37,21 +34,11 @@ class AppointmentService:
 
     @staticmethod
     def book_appointment(patient_user_id, doctor_id, date_str, time_str):
-        # 1. Find Patient
+        # 1. Find Patient Profile using the User ID
         patient = Patient.query.filter_by(user_id=patient_user_id).first()
         
         if not patient:
-            # --- DEBUGGING BLOCK START ---
-            print("❌ NOT FOUND! Printing all valid Patient User IDs in this database:")
-            all_patients = Patient.query.all()
-            valid_ids = [p.user_id for p in all_patients]
-            print(f"👉 VALID USER IDs: {valid_ids}")
-            
-            print(f"📂 Database File being used: {db.engine.url}")
-            print("-" * 30)
-            # --- DEBUGGING BLOCK END ---
-            
-            return None, f"Patient profile not found. Valid User IDs are: {valid_ids}"
+            return None, "Patient profile not found. Please contact support."
         
         # 2. Parse Date
         try:
@@ -72,7 +59,7 @@ class AppointmentService:
         if time_str not in available_slots:
             return None, f"Doctor is not available at {time_str}."
 
-        # 4. Create Object
+        # 4. Create Appointment Object
         new_appt = Appointment(
             patient_id=patient.id,
             doctor_id=doctor_id,
@@ -85,6 +72,7 @@ class AppointmentService:
             db.session.add(new_appt)
             db.session.commit()
             
+            # Refresh to get the generated ID and formatted date back from DB
             db.session.refresh(new_appt)
             
             return new_appt, "Appointment booked successfully."
@@ -106,7 +94,6 @@ class AppointmentService:
             try:
                 # Handle Enum conversion safely
                 status_str = data['status']
-                # If the string matches the Enum value (e.g. 'Booked')
                 if status_str in AppointmentStatus._value2member_map_:
                     appt.status = AppointmentStatus(status_str)
                 else:
@@ -144,4 +131,98 @@ class AppointmentService:
             db.session.commit()
             return True, "Deleted"
         except Exception as e:
+            return False, str(e)
+
+    @staticmethod
+    def get_available_slots(doctor_id, date_str):
+        """
+        Calculates available slots by checking:
+        1. Doctor's set schedule
+        2. Existing bookings
+        3. Past time checks (if today)
+        """
+        try:
+            target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return [], "Invalid date format"
+
+        # 1. Get Doctor's Schedule for that day
+        schedule = DoctorAvailability.query.filter_by(
+            doctor_id=doctor_id, 
+            available_date=target_date
+        ).first()
+
+        if not schedule:
+            return [], "Doctor is not working on this date."
+
+        # Convert string "09:00,10:00" to list ["09:00", "10:00"]
+        all_slots = [s.strip() for s in schedule.available_slots.split(',') if s.strip()]
+
+        # 2. Get Booked Slots
+        booked_appts = Appointment.query.filter_by(
+            doctor_id=doctor_id,
+            appointment_date=target_date
+        ).filter(Appointment.status != AppointmentStatus.CANCELLED).all()
+        
+        booked_times = {appt.appointment_time for appt in booked_appts}
+
+        # 3. Filter Logic
+        final_slots = []
+        now = datetime.now()
+        is_today = (target_date == now.date())
+
+        for slot in all_slots:
+            # A. Remove if booked
+            if slot in booked_times:
+                continue
+            
+            # B. Remove if in the past (only if date is today)
+            if is_today:
+                try:
+                    slot_dt = datetime.strptime(f"{date_str} {slot}", '%Y-%m-%d %H:%M')
+                    if slot_dt < now:
+                        continue # Time has passed
+                except ValueError:
+                    pass 
+
+            final_slots.append(slot)
+
+        return final_slots, None
+    
+    @staticmethod
+    def set_availability(doctor_id, availability_data):
+        """
+        Saves or Updates availability for a list of dates.
+        data format: [{ "date": "2025-11-28", "slots": "09:00,10:00" }, ...]
+        """
+        try:
+            for item in availability_data:
+                date_str = item.get('date')
+                slots_str = item.get('slots')
+                
+                # Parse date
+                date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+
+                # Check if entry exists
+                existing = DoctorAvailability.query.filter_by(
+                    doctor_id=doctor_id, 
+                    available_date=date_obj
+                ).first()
+
+                if existing:
+                    # Update existing
+                    existing.available_slots = slots_str
+                else:
+                    # Create new
+                    new_avail = DoctorAvailability(
+                        doctor_id=doctor_id,
+                        available_date=date_obj,
+                        available_slots=slots_str
+                    )
+                    db.session.add(new_avail)
+            
+            db.session.commit()
+            return True, "Availability updated successfully."
+        except Exception as e:
+            db.session.rollback()
             return False, str(e)

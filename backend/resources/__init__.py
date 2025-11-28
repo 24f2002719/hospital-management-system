@@ -1,10 +1,11 @@
 from resources.auth import auth_bp
 from flask import Blueprint
 from flask_restful import Api
-from resources.appointment_resource import AppointmentListResource, AppointmentResource
+from resources.appointment_resource import AppointmentListResource, AppointmentResource, DoctorAvailabilityResource,DoctorAvailabilityManageResource
 from resources.specialization_resource import SpecializationListResource, SpecializationResource
 from resources.treatment_resource import TreatmentListResource, TreatmentResource
-from resources.user_resource import UserListResource, UserResource, DoctorCreationResource, PatientHistoryResource,PublicDoctorListResource
+from resources.user_resource import UserListResource,UserResource, DoctorCreationResource, PatientHistoryResource,PublicDoctorListResource,ExportHistoryResource
+
 
 
 
@@ -42,4 +43,8 @@ api.add_resource(UserResource, '/users/<int:user_id>')
 # Patient History (Admin/Doctor view)
 api.add_resource(PatientHistoryResource, '/patients/<int:user_id>/history')
 api.add_resource(PublicDoctorListResource, '/public/doctors')
+
+api.add_resource(ExportHistoryResource, '/export/history')
+api.add_resource(DoctorAvailabilityResource, '/doctors/<int:doctor_id>/slots')
+api.add_resource(DoctorAvailabilityManageResource, '/doctor/availability')
 

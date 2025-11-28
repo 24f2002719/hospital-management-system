@@ -67,9 +67,8 @@
             
             <div class="p-4">
               <h6 class="fw-bold text-muted text-uppercase small mb-2">About Doctor</h6>
-              
               <p class="text-secondary small">
-                {{ profileDoctor?.bio || 'No detailed biography available for this doctor.' }}
+                {{ profileDoctor?.bio || 'No detailed biography available.' }}
               </p>
               
               <div class="row g-3 mt-2">
@@ -91,9 +90,7 @@
                 <button class="btn btn-primary rounded-pill btn-lg" @click="transferToBooking(profileDoctor)">
                   Book Appointment Now
                 </button>
-                <button class="btn btn-link text-muted text-decoration-none" data-bs-dismiss="modal">
-                  Close
-                </button>
+                <button class="btn btn-link text-muted text-decoration-none" data-bs-dismiss="modal">Close</button>
               </div>
             </div>
           </div>
@@ -121,7 +118,7 @@
 
             <div v-if="loadingSlots" class="text-center py-3">
               <div class="spinner-border text-primary" role="status"></div>
-              <p class="text-muted mt-2 small">Checking availability...</p>
+              <p class="text-muted mt-2 small">Checking doctor's schedule...</p>
             </div>
 
             <div v-else-if="selectedDate">
@@ -138,8 +135,11 @@
                   {{ slot }}
                 </button>
               </div>
+              
               <div v-else class="alert alert-warning small text-center border-0 bg-warning-subtle text-warning-emphasis">
-                ⚠️ No slots available for this date.
+                <div class="fs-4 mb-2">🔒</div>
+                <strong>{{ slotMessage || 'No slots available' }}</strong>
+                <p class="mb-0 mt-1">The doctor is not working or fully booked on this date.</p>
               </div>
             </div>
           </div>
@@ -181,7 +181,7 @@ const specializations = ref([]);
 const searchName = ref('');
 const searchSpec = ref('');
 
-// Modals Refs & Instances
+// Modals
 const bookingModalRef = ref(null);
 const detailsModalRef = ref(null);
 let bookingModalInstance = null;
@@ -189,10 +189,11 @@ let detailsModalInstance = null;
 
 // State
 const selectedDoctor = ref(null);
-const profileDoctor = ref(null); // For details modal
+const profileDoctor = ref(null);
 const selectedDate = ref('');
 const selectedSlot = ref('');
 const availableSlots = ref([]);
+const slotMessage = ref('');
 const loadingSlots = ref(false);
 const bookingLoading = ref(false);
 
@@ -210,12 +211,10 @@ const fetchData = async () => {
     specializations.value = await api.get('/specializations');
     const docsData = await api.get('/public/doctors'); 
     doctors.value = Array.isArray(docsData) ? docsData : [];
-
     if (route.query.spec) searchSpec.value = route.query.spec;
   } catch (e) { console.error(e); }
 };
 
-// --- View Details Logic ---
 const openDetailsModal = (doc) => {
   profileDoctor.value = doc;
   detailsModalInstance.show();
@@ -226,23 +225,37 @@ const transferToBooking = (doc) => {
   openBookingModal(doc);
 };
 
-// --- Booking Logic ---
 const openBookingModal = (doc) => {
   selectedDoctor.value = doc;
   selectedDate.value = '';
   selectedSlot.value = '';
   availableSlots.value = [];
+  slotMessage.value = '';
   bookingModalInstance.show();
 };
 
+// --- FIX: FETCH REAL SLOTS FROM BACKEND ---
 const fetchSlots = async () => {
   if (!selectedDate.value) return;
+  
   loadingSlots.value = true;
   availableSlots.value = [];
+  selectedSlot.value = '';
+  slotMessage.value = '';
+  
   try {
-    // Fake slots for now (Replace with real API later)
-    await new Promise(r => setTimeout(r, 500)); 
-    availableSlots.value = ["09:00", "09:30", "10:00", "11:00", "14:00", "14:30", "15:00", "16:00"]; 
+    // 1. Call Backend API
+    const res = await api.get(`/doctors/${selectedDoctor.value.id}/slots?date=${selectedDate.value}`);
+    
+    // 2. Update UI
+    if (res.slots && res.slots.length > 0) {
+      availableSlots.value = res.slots;
+    } else {
+      slotMessage.value = res.message || "No slots available.";
+    }
+  } catch (error) {
+    console.error(error);
+    slotMessage.value = "Error fetching schedule.";
   } finally {
     loadingSlots.value = false;
   }

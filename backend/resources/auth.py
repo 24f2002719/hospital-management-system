@@ -1,7 +1,7 @@
 import uuid  # <--- IMPORT THIS
 from flask import Blueprint, request, jsonify, current_app
 from flask_security.utils import verify_password, hash_password
-from models import User, db
+from models import User, db,Patient
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
@@ -74,6 +74,7 @@ def register():
     datastore = current_app.datastore
 
     try:
+        # 1. Create User
         user = datastore.create_user(
             name=name, 
             email=email, 
@@ -83,8 +84,17 @@ def register():
             active=True 
         )
         
+        # 2. FLUSH to generate the ID (Crucial Step!)
+        db.session.flush() 
+        print(f"✅ Created User with ID: {user.id}") # Debug print
+
+        # 3. Assign Role
         patient_role = datastore.find_role('patient')
         datastore.add_role_to_user(user, patient_role)
+        
+        # 4. Create Patient Profile
+        new_patient_profile = Patient(user_id=user.id, contact_info="N/A")
+        db.session.add(new_patient_profile)
         
         db.session.commit()
     except Exception as e:
