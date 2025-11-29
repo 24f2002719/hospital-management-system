@@ -125,13 +125,11 @@ const appointments = ref([]);
 const modalRef = ref(null);
 let modalInstance = null;
 
-// Payment State
 const selectedAppt = ref(null);
 const paying = ref(false);
 
 const formatDate = (d) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
-// Fetch Data
 const fetchAppts = async () => {
   try {
     const data = await api.get('/appointments');
@@ -139,26 +137,21 @@ const fetchAppts = async () => {
   } catch (e) { console.error(e); }
 };
 
-// Open Modal
 const openPaymentModal = (appt) => {
   selectedAppt.value = appt;
   modalInstance.show();
 };
 
-// Process Dummy Payment
 const processPayment = async () => {
   paying.value = true;
   try {
-    // 1. Simulate Network Delay
     await new Promise(r => setTimeout(r, 1500));
     
-    // 2. Call Backend API
     await api.post(`/pay/${selectedAppt.value.id}`, {});
     
     alert("Payment Successful! Invoice sent to email.");
     modalInstance.hide();
     
-    // 3. Refresh list to update status to "Paid"
     fetchAppts(); 
   } catch (e) {
     alert("Payment Failed: " + (e.message || "Unknown error"));

@@ -4,7 +4,7 @@
       
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
         <div class="input-group" style="max-width: 400px;">
-          <span class="input-group-text bg-white border-end-0 text-muted">🔍</span>
+          <span class="input-group-text bg-white border-end-0 text-muted"></span>
           <input v-model="search" type="text" class="form-control border-start-0" placeholder="Search Patient or Doctor...">
         </div>
         <div class="d-flex align-items-center gap-2">
@@ -33,7 +33,7 @@
             <tr v-for="appt in filteredAppointments" :key="appt.id">
               <td>
                 <div class="fw-bold text-dark">{{ formatDate(appt.appointment_date) }}</div>
-                <div class="small text-muted">⏰ {{ appt.appointment_time }}</div>
+                <div class="small text-muted">{{ appt.appointment_time }}</div>
               </td>
               <td>Dr. {{ appt.doctor_name || 'Unknown' }}</td>
               <td>
@@ -72,7 +72,7 @@
         <div class="modal-content border-0 shadow">
           <div class="modal-header bg-light">
             <h5 class="modal-title fw-bold">
-              📂 Patient History: <span class="text-primary">{{ selectedPatientName }}</span>
+              Patient History: <span class="text-primary">{{ selectedPatientName }}</span>
             </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
@@ -121,22 +121,21 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { Modal } from 'bootstrap'; // Required for popup
+import { Modal } from 'bootstrap'; 
 import api from '@/utils/api';
 
-// --- State ---
 const appointments = ref([]);
 const search = ref('');
 const statusFilter = ref('All');
 
-// History Modal State
+
 const historyModalRef = ref(null);
 let historyModalInstance = null;
 const patientHistory = ref([]);
 const selectedPatientName = ref('');
 const isLoadingHistory = ref(false);
 
-// --- Computed ---
+
 const filteredAppointments = computed(() => {
   return appointments.value.filter(appt => {
     const query = search.value.toLowerCase();
@@ -154,33 +153,32 @@ const getStatusColor = (status) => {
   return 'bg-danger-subtle text-danger';
 };
 
-// --- Actions ---
+
 const fetchAppointments = async () => {
   try {
     const data = await api.get('/appointments');
-    // Important: Ensure your backend /appointments returns 'patient_id_user' (the User ID of patient)
     appointments.value = Array.isArray(data) ? data : [];
   } catch (error) {
     console.error("Failed to load appointments", error);
   }
 };
 
-// NEW: Open History Modal
+
 const openHistoryModal = async (patientUserId, patientName) => {
   selectedPatientName.value = patientName;
   patientHistory.value = [];
   isLoadingHistory.value = true;
   
-  // Open Modal immediately
+ 
   historyModalInstance.show();
 
   try {
-    // Fetch data from the new backend endpoint
+ 
     const data = await api.get(`/patients/${patientUserId}/history`);
     patientHistory.value = data;
   } catch (error) {
     console.error("Failed to load history", error);
-    // You could show an error message in the modal here
+    
   } finally {
     isLoadingHistory.value = false;
   }
@@ -202,7 +200,7 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
-// --- Lifecycle ---
+
 onMounted(() => {
   fetchAppointments();
   historyModalInstance = new Modal(historyModalRef.value);

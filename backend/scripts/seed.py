@@ -1,11 +1,11 @@
-import uuid  # <--- Added missing import
+import uuid  
 import random
 from datetime import datetime, timedelta
 from faker import Faker
 from faker_food import FoodProvider
 from flask_security.utils import hash_password
 
-# --- IMPORTS ---
+
 from app import app 
 from models import (
     db, User, Role, UserRoles, Specialization, Doctor, Patient, 
@@ -28,10 +28,7 @@ def get_or_create_role(name, description):
 
 def seed_database():
     with app.app_context():
-        # --- RESET DATABASE (Only if starting fresh) ---
-        # db.drop_all() 
-        # db.create_all()
-        # -----------------------------------------------
+        
 
         print("--- Seeding Roles ---")
         admin_role = get_or_create_role('admin', 'Super Administrator') 
@@ -54,8 +51,7 @@ def seed_database():
             specialization_objs.append(spec)
         db.session.commit()
 
-        # --- ADMIN SECTION ---
-        # Note: You said admin already exists, skipping creation
+        
         print("--- Skipping Admin User Creation (Already Exists) ---")
 
         print("--- Seeding Doctors ---")
@@ -68,11 +64,10 @@ def seed_database():
                 if User.query.filter_by(email=email).first(): 
                     continue
 
-                # 1. Create User
                 d_user = User(
                     name=fake.name(),
                     email=email,
-                    password=hash_password("pass123"), # Fixed: was "pass123" in your code, keeping consistent
+                    password=hash_password("pass123"), 
                     fs_uniquifier=str(uuid.uuid4()),
                     active=True,
                     address=fake.address(),
@@ -81,24 +76,24 @@ def seed_database():
                 db.session.add(d_user)
                 db.session.flush()
 
-                # 2. Assign Role
+             
                 ur = UserRoles(user_id=d_user.id, role_id=doctor_role.id)
                 db.session.add(ur)
 
-                # 3. Create Doctor Profile (UPDATED)
+                
                 spec = random.choice(specialization_objs)
                 new_doctor = Doctor(
                     user_id=d_user.id, 
                     specialization_id=spec.id,
-                    experience_years=random.randint(2, 25), # <--- New Field
-                    bio=fake.paragraph(nb_sentences=3)      # <--- New Field
+                    experience_years=random.randint(2, 25), 
+                    bio=fake.paragraph(nb_sentences=3)      
                 )
                 db.session.add(new_doctor)
                 db.session.flush()
                 
                 doctor_objs.append(new_doctor)
                 
-                # 4. Create Availabilities
+             
                 for day_offset in range(0, 30, 2):
                     avail_date = datetime.now() + timedelta(days=day_offset)
                     avail = DoctorAvailability(

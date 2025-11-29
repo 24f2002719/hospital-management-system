@@ -104,7 +104,6 @@ import api from '@/utils/api';
 
 const authStore = useAuthStore();
 
-// State
 const isLoading = ref(false);
 const successMessage = ref('');
 const errorMessage = ref('');
@@ -117,10 +116,8 @@ const form = ref({
   pincode: ''
 });
 
-// Fetch Data
 const fetchProfile = async () => {
   try {
-    // Get ID from the store (which gets it from localStorage/Login response)
     const userId = authStore.user.id;
     
     const data = await api.get(`/users/${userId}`);
@@ -130,7 +127,6 @@ const fetchProfile = async () => {
     form.value.address = data.address || '';
     form.value.pincode = data.pincode || '';
     
-    // If doctor, capture specialization for display
     if (data.specialization) {
       specialization.value = data.specialization;
     }
@@ -141,7 +137,6 @@ const fetchProfile = async () => {
   }
 };
 
-// Update Data
 const updateProfile = async () => {
   isLoading.value = true;
   successMessage.value = '';
@@ -150,7 +145,6 @@ const updateProfile = async () => {
   try {
     const userId = authStore.user.id;
     
-    // Send update request
     await api.put(`/users/${userId}`, {
       name: form.value.name,
       address: form.value.address,
@@ -159,7 +153,6 @@ const updateProfile = async () => {
 
     successMessage.value = "Profile updated successfully!";
     
-    // Update the store locally so Navbar reflects the name change immediately
     const updatedUser = { ...authStore.user, name: form.value.name };
     authStore.setUser(updatedUser);
 

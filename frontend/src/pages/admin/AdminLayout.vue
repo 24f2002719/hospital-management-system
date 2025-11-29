@@ -63,7 +63,6 @@
 
 
 <style scoped>
-/* Custom Active State for Tabs */
 .nav-pills .nav-link.active {
   background-color: #0d6efd;
   color: white;
@@ -77,7 +76,6 @@
   color: #0d6efd;
 }
 
-/* Page Transition */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;

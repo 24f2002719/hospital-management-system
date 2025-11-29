@@ -89,18 +89,16 @@ const router = useRouter();
 const authStore = useAuthStore();
 const isOpen = ref(false);
 
-// --- 🟢 NEW: Logic for Brand Logo Link ---
 const brandLink = computed(() => {
   if (!authStore.isAuthenticated) {
-    return '/'; // Guest -> Home
+    return '/'; 
   }
-  // Logged In -> Go to specific dashboard
   if (authStore.isAdmin) return '/admin/dashboard';
   if (authStore.isDoctor) return '/doctor/dashboard';
-  return '/dashboard'; // Patient
+  return '/dashboard';
 });
 
-// Dropdown Logic
+
 const toggleDropdown = () => { isOpen.value = !isOpen.value; };
 const closeDropdown = () => { isOpen.value = false; };
 

@@ -4,7 +4,6 @@ from sqlalchemy import Enum
 from sqlalchemy.schema import UniqueConstraint
 import enum
 from flask_security import UserMixin, RoleMixin
-# import jwt  <-- REMOVED: Not needed, Flask-Security handles this
 from flask import current_app
 
 class BaseModel(db.Model):
@@ -18,25 +17,22 @@ class Specialization(BaseModel):
     name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.Text)
 
-class User(BaseModel, UserMixin): # UserMixin provides the correct get_auth_token
+class User(BaseModel, UserMixin): 
     name = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(120), unique=True)
     password = db.Column(db.String(128), nullable=False)
     
-    # Flask-Security fields
     fs_uniquifier = db.Column(db.String, unique=True, nullable=False)
     active = db.Column(db.Boolean, default=True) 
     roles = db.relationship('Role', backref='bearers', secondary='user_roles')
     
-    # Profiles
     doctor_profile = db.relationship('Doctor', backref='user', uselist=False)
     patient_profile = db.relationship('Patient', backref='user', uselist=False)
 
     address = db.Column(db.String(250), nullable=True)
     pincode = db.Column(db.String(10), nullable=True)
 
-    # REMOVED: def get_auth_token(self)... 
-    # We let Flask-Security's UserMixin handle this method now.
+    
 
 class Role(BaseModel, RoleMixin):
     name = db.Column(db.String, unique=True, nullable=False)
@@ -55,10 +51,8 @@ class Doctor(BaseModel):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
     specialization_id = db.Column(db.Integer, db.ForeignKey('specialization.id'), nullable=False)
     
-    # --- ADD THESE TWO LINES ---
     experience_years = db.Column(db.Integer, default=0)
-    bio = db.Column(db.Text, nullable=True) # Details/Description
-    # ---------------------------
+    bio = db.Column(db.Text, nullable=True) 
 
     specialization = db.relationship('Specialization', backref='doctors')
     availabilities = db.relationship('DoctorAvailability', backref='doctor', lazy='dynamic')
@@ -73,11 +67,11 @@ class Appointment(BaseModel):
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False)
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
     appointment_date = db.Column(db.Date, nullable=False)
-    appointment_time = db.Column(db.String(5), nullable=False) # HH:MM format
+    appointment_time = db.Column(db.String(5), nullable=False) 
     status = db.Column(Enum(AppointmentStatus), default=AppointmentStatus.BOOKED)
 
     is_paid = db.Column(db.Boolean, default=False)
-    amount = db.Column(db.Integer, default=500) # Default fee 500
+    amount = db.Column(db.Integer, default=500) 
 
     treatment = db.relationship('Treatment', backref='appointment', uselist=False)
     

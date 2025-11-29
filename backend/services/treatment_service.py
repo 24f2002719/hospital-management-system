@@ -6,16 +6,16 @@ class TreatmentService:
 
     @staticmethod
     def add_treatment(appointment_id, diagnosis, prescription, notes, next_visit_date_str=None):
-        # 1. Check if Appointment exists
+        
         appt = Appointment.query.get(appointment_id)
         if not appt:
             return None, "Appointment ID not found."
 
-        # 2. Check if Treatment already exists (One-to-One constraint)
+        
         if appt.treatment:
             return None, "Treatment details already exist for this appointment. Use PUT to update."
 
-        # 3. Parse Next Visit Date (Optional)
+       
         next_visit = None
         if next_visit_date_str:
             try:
@@ -23,7 +23,7 @@ class TreatmentService:
             except ValueError:
                 return None, "Invalid date format for next visit. Use YYYY-MM-DD."
 
-        # 4. Create Treatment Object
+        
         new_treatment = Treatment(
             appointment_id=appointment_id,
             diagnosis=diagnosis,
@@ -35,7 +35,7 @@ class TreatmentService:
         try:
             db.session.add(new_treatment)
             
-            # 🔥 AUTOMATIC LOGIC: If treatment is given, Appointment is Completed
+            
             appt.status = AppointmentStatus.COMPLETED
             
             db.session.commit()

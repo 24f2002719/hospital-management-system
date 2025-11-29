@@ -70,9 +70,8 @@ import { useAuthStore } from '@/stores/auth';
 
 const authStore = useAuthStore();
 const history = ref([]);
-const exportLoading = ref(false); // State for the button spinner
+const exportLoading = ref(false); 
 
-// 1. Fetch History
 onMounted(async () => {
   try {
     const userId = authStore.user.id;
@@ -80,16 +79,13 @@ onMounted(async () => {
   } catch (e) { console.error("Error fetching history", e); }
 });
 
-// 2. Trigger CSV Export (Celery Task)
 const exportData = async () => {
   if (history.value.length === 0) return;
   
   exportLoading.value = true;
   try {
-    // This calls the Flask endpoint that starts the Celery task
     const res = await api.post('/export/history', {}); 
     
-    // Success feedback
     alert(res.message || "Export started! Please check your email.");
   } catch (e) {
     alert("Failed to start export. Please try again later.");

@@ -78,38 +78,33 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/auth'; // Import Pinia Store
+import { useAuthStore } from '@/stores/auth'; 
 
 
 const router = useRouter();
-const authStore = useAuthStore(); // Access the store
+const authStore = useAuthStore(); 
 
-// Form State
 const email = ref('');
 const password = ref('');
 const errorMessage = ref('');
 const isLoading = ref(false);
 
 const handleLogin = async () => {
-  // Reset UI state
   isLoading.value = true;
   errorMessage.value = '';
 
   try {
-    // 1. Login using the Store Action (handles API & Token storage internally)
     await authStore.login(email.value, password.value);
 
-    // 2. Redirect based on Role (Using Store Getters)
     if (authStore.isAdmin) {
       router.push('/admin/dashboard');
     } else if (authStore.isDoctor) {
       router.push('/doctor/dashboard'); 
     } else {
-      router.push('/dashboard'); // Patients go to Home/Dashboard
+      router.push('/dashboard'); 
     }
 
   } catch (error) {
-    // Show error message from backend
     errorMessage.value = error.message || "An unexpected error occurred.";
   } finally {
     isLoading.value = false;

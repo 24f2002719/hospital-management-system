@@ -129,18 +129,15 @@ import api from '@/utils/api';
 const patients = ref([]);
 const search = ref('');
 
-// Modal State
 const modalRef = ref(null);
 let modalInstance = null;
 const form = ref({ id: null, name: '', email: '', address: '', pincode: '' });
 
-// --- Computed ---
 const filtered = computed(() => patients.value.filter(p => 
   p.name.toLowerCase().includes(search.value.toLowerCase()) || 
   p.email.toLowerCase().includes(search.value.toLowerCase())
 ));
 
-// --- Actions ---
 const fetch = async () => {
   try {
     const users = await api.get('/users');
@@ -148,7 +145,6 @@ const fetch = async () => {
   } catch (e) { console.error(e); }
 };
 
-// Open Edit Modal
 const openModal = (patient) => {
   form.value = { 
     id: patient.id, 
@@ -156,12 +152,11 @@ const openModal = (patient) => {
     email: patient.email, 
     address: patient.address || '', 
     pincode: patient.pincode || '',
-    contact_info: patient.contact_info // Only if backend sends this
+    contact_info: patient.contact_info 
   };
   modalInstance.show();
 };
 
-// Save Changes
 const savePatient = async () => {
   try {
     await api.put(`/users/${form.value.id}`, {
@@ -172,7 +167,7 @@ const savePatient = async () => {
     
     alert("Patient updated successfully!");
     modalInstance.hide();
-    fetch(); // Refresh list
+    fetch(); 
   } catch (error) {
     alert(error.message || "Failed to update patient");
   }

@@ -14,11 +14,9 @@ def login():
     if not email or not password:
         return jsonify({"error": "Email and password are required"}), 400
     
-    # 1. FIND USER
+
     user = User.query.filter_by(email=email).first()
 
-    # 2. SAFETY CHECK: Check if user exists BEFORE doing anything else
-    # In your old code, you tried to get the token here, which caused the crash.
     if not user:
         return jsonify({"error": "Invalid email or password"}), 401
 
@@ -28,13 +26,11 @@ def login():
     if not user.active:
         return jsonify({"error": "Account is not active. Please contact admin."}), 403
 
-    # 3. GENERATE UNIQUE TOKEN
-    # We update the fs_uniquifier to ensure the token is fresh and unique every time
     try:
         user.fs_uniquifier = str(uuid.uuid4())
         db.session.commit()
         
-        # Now it is safe to generate the token
+  
         token = user.get_auth_token()
     except Exception as e:
         db.session.rollback()
@@ -74,7 +70,7 @@ def register():
     datastore = current_app.datastore
 
     try:
-        # 1. Create User
+   
         user = datastore.create_user(
             name=name, 
             email=email, 
@@ -84,15 +80,14 @@ def register():
             active=True 
         )
         
-        # 2. FLUSH to generate the ID (Crucial Step!)
+    
         db.session.flush() 
-        print(f"✅ Created User with ID: {user.id}") # Debug print
-
-        # 3. Assign Role
+        print(f"Created User with ID: {user.id}") 
+       
         patient_role = datastore.find_role('patient')
         datastore.add_role_to_user(user, patient_role)
         
-        # 4. Create Patient Profile
+      
         new_patient_profile = Patient(user_id=user.id, contact_info="N/A")
         db.session.add(new_patient_profile)
         

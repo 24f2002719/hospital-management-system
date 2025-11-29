@@ -2,9 +2,8 @@ from flask import request
 from flask_restful import Resource
 from flask_security import auth_token_required 
 from services.appointment_service import AppointmentService
-from database import cache # Import from database.py
+from database import cache 
 
-# --- HELPER FUNCTION ---
 def to_dict(appt):
     return {
         "id": appt.id,
@@ -18,22 +17,20 @@ def to_dict(appt):
         "patient_id": appt.patient_id,
         "doctor_id": appt.doctor_id,
         
-        # --- ENSURE THESE TWO LINES ARE PRESENT ---
+      
         "is_paid": getattr(appt, 'is_paid', False), 
         "amount": getattr(appt, 'amount', 500)      
-        # ------------------------------------------
+  
     }
 
-# --- NEW: Cache Key Generator (Defined OUTSIDE the class) ---
 def make_availability_cache_key():
     """Generates a unique key based on doctor ID and Date"""
-    # request.view_args gets the URL parameters (doctor_id)
-    # request.args gets the Query parameters (?date=...)
+
     doctor_id = request.view_args.get('doctor_id')
     date_str = request.args.get('date')
     return f"slots_doc_{doctor_id}_date_{date_str}"
 
-# --- LIST RESOURCE ---
+
 class AppointmentListResource(Resource):
     
     @auth_token_required 
@@ -60,7 +57,6 @@ class AppointmentListResource(Resource):
             
         return to_dict(appt), 201
 
-# --- SINGLE ITEM RESOURCE ---
 class AppointmentResource(Resource):
 
     @auth_token_required
@@ -87,11 +83,11 @@ class AppointmentResource(Resource):
         else:
             return {"message": message}, 404
 
-# --- AVAILABILITY RESOURCE ---
+
 class DoctorAvailabilityResource(Resource):
     
     @auth_token_required
-    # Use the function name directly (no parentheses, no self)
+    
     @cache.cached(timeout=60, key_prefix=make_availability_cache_key) 
     def get(self, doctor_id):
         """
@@ -105,12 +101,12 @@ class DoctorAvailabilityResource(Resource):
         slots, error = AppointmentService.get_available_slots(doctor_id, date_str)
         
         if error:
-            # Return empty list instead of error code so UI shows "No slots" gracefully
+          
             return {"slots": [], "message": error}, 200
             
         return {"slots": slots}, 200
 
-# --- MANAGE AVAILABILITY RESOURCE ---
+
 class DoctorAvailabilityManageResource(Resource):
     @auth_token_required
     def post(self):
@@ -125,10 +121,7 @@ class DoctorAvailabilityManageResource(Resource):
             availability_data=data
         )
         
-        # Clear cache so new slots appear immediately
-        # (Advanced: You could delete specific keys, but clearing prefix is simpler for now)
-        # cache.clear() 
-        
+      
         if success:
             return {"message": message}, 200
         return {"message": message}, 400

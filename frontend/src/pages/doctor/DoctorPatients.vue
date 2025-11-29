@@ -131,27 +131,21 @@ import { ref, computed, onMounted } from 'vue';
 import { Modal } from 'bootstrap';
 import api from '@/utils/api';
 
-// State
 const appointments = ref([]);
 const search = ref('');
 const history = ref([]);
 const selectedPatientName = ref('');
 const isLoading = ref(false);
 
-// Modal References
 const modalRef = ref(null);
 let modalInstance = null;
 
-// --- 1. Compute Unique Patients ---
-// Since we don't have a "My Patients" table in DB, we derive it from appointments
 const filteredPatients = computed(() => {
   const uniqueMap = new Map();
 
-  // Sort appointments by date desc to get latest visit first
   const sortedAppts = [...appointments.value].sort((a, b) => new Date(b.appointment_date) - new Date(a.appointment_date));
 
   sortedAppts.forEach(appt => {
-    // Only add if not already in map AND matches search
     if (!uniqueMap.has(appt.patient_id) && appt.patient_name.toLowerCase().includes(search.value.toLowerCase())) {
       uniqueMap.set(appt.patient_id, appt);
     }
@@ -160,10 +154,8 @@ const filteredPatients = computed(() => {
   return Array.from(uniqueMap.values());
 });
 
-// --- 2. Fetch Data ---
 const fetchData = async () => {
   try {
-    //  returns ONLY this doctor's appointments (handled by backend logic we wrote earlier)
     const data = await api.get('/appointments');
     appointments.value = Array.isArray(data) ? data : [];
   } catch (error) {
@@ -171,7 +163,6 @@ const fetchData = async () => {
   }
 };
 
-// --- 3. View History Logic ---
 const openHistoryModal = async (patient) => {
   selectedPatientName.value = patient.patient_name;
   history.value = [];
@@ -179,7 +170,6 @@ const openHistoryModal = async (patient) => {
   modalInstance.show();
 
   try {
-    // We use patient_id_user (User ID) to fetch history
     const data = await api.get(`/patients/${patient.patient_id_user}/history`);
     history.value = data;
   } catch (error) {
@@ -189,13 +179,11 @@ const openHistoryModal = async (patient) => {
   }
 };
 
-// Helper
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
   return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
-// Lifecycle
 onMounted(() => {
   fetchData();
   modalInstance = new Modal(modalRef.value);

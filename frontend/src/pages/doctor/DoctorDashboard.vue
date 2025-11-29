@@ -106,7 +106,7 @@
           <div class="position-absolute top-0 end-0 bg-primary opacity-25 rounded-circle" style="width: 150px; height: 150px; transform: translate(30%, -30%);"></div>
           
           <div class="card-body p-4 position-relative z-1 d-flex flex-column justify-content-center">
-            <h6 class="text-white-50 text-uppercase fw-bold mb-4">🚀 Next Patient</h6>
+            <h6 class="text-white-50 text-uppercase fw-bold mb-4">Next Patient</h6>
             
             <div v-if="nextPatient" class="text-center">
               <div class="bg-white text-dark rounded-circle d-inline-flex align-items-center justify-content-center fw-bold mb-3 shadow" style="width: 80px; height: 80px; font-size: 2rem;">
@@ -139,14 +139,13 @@ import api from '@/utils/api';
 
 const appointments = ref([]);
 
-// --- Statistics Computed Logic ---
 const stats = computed(() => {
   const todayStr = new Date().toISOString().split('T')[0];
   
   const upcomingCount = appointments.value.filter(a => a.status === 'Booked').length;
   const completedTodayCount = appointments.value.filter(a => a.status === 'Completed' && a.appointment_date === todayStr).length;
   
-  // Count unique patient IDs
+  
   const uniquePatients = new Set(appointments.value.map(a => a.patient_id)).size;
 
   return {
@@ -156,35 +155,29 @@ const stats = computed(() => {
   };
 });
 
-// --- List Logic: Upcoming Booked ---
 const upcomingBooked = computed(() => {
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Start of today
+  today.setHours(0, 0, 0, 0); 
 
   return appointments.value
     .filter(a => {
       const apptDate = new Date(a.appointment_date);
-      // Filter: Status is 'Booked' AND Date is Today or Future
       return a.status === 'Booked' && apptDate >= today;
     })
     .sort((a, b) => new Date(a.appointment_date) - new Date(b.appointment_date)) // Sort nearest first
-    .slice(0, 10); // Show top 10
+    .slice(0, 10); 
 });
 
-// --- Highlight: Next Patient ---
 const nextPatient = computed(() => {
   const todayStr = new Date().toISOString().split('T')[0];
-  // Find the first booked appointment strictly for TODAY
   return upcomingBooked.value.find(a => a.appointment_date === todayStr);
 });
 
-// --- Helper: Date Formatting ---
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
   const date = new Date(dateStr);
   const today = new Date();
   
-  // Show "Today" or "Tomorrow" for clarity
   if (date.toDateString() === today.toDateString()) return 'Today';
   
   const tomorrow = new Date(today);
@@ -194,7 +187,6 @@ const formatDate = (dateStr) => {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 };
 
-// --- Fetch Data ---
 onMounted(async () => {
   try {
     const data = await api.get('/appointments');

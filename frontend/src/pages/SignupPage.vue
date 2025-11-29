@@ -172,9 +172,7 @@ const apiError = ref('');
 const successMessage = ref('');
 const isLoading = ref(false);
 
-// Validation Logic
 const validate = () => {
-  // Clear previous errors
   Object.keys(errors).forEach(key => delete errors[key]);
 
   let isValid = true;
@@ -209,7 +207,6 @@ const validate = () => {
   return isValid;
 };
 
-// API Handler
 const handleSignup = async () => {
   if (!validate()) return;
 
@@ -228,7 +225,6 @@ const handleSignup = async () => {
         password: form.password,
         address: form.address,
         pincode: form.pincode
-        // Note: Role is not sent; backend forces 'patient' automatically
       })
     });
 
@@ -238,10 +234,8 @@ const handleSignup = async () => {
       throw new Error(data.message || data.error || 'Registration failed');
     }
 
-    // Success
     successMessage.value = 'Account created successfully!';
     
-    // Redirect to login after 2 seconds
     setTimeout(() => {
       router.push('/login');
     }, 2000);

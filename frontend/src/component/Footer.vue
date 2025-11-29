@@ -91,7 +91,7 @@ const authStore = useAuthStore();
 }
 .hover-link:hover {
   text-decoration: none !important;
-  color: #0d6efd !important; /* Bootstrap Primary Color */
-  transform: translateX(5px); /* Subtle slide effect */
+  color: #0d6efd !important; 
+  transform: translateX(5px); 
 }
 </style>

@@ -6,20 +6,20 @@ from models import Patient, AppointmentStatus
 from database import cache
 
 
-# 1. Resource for Listing Users (GET - Admin)
+
 class UserListResource(Resource):
     @auth_token_required
     def get(self):
         return UserService.get_all_users()
 
-# 2. Resource for Creating Doctors (POST)
+
 class DoctorCreationResource(Resource):
     @auth_token_required
     def post(self):
         data = request.get_json()
         return UserService.create_doctor(data)
 
-# 3. Resource for Single User Operations (GET, PUT, DELETE)
+
 class UserResource(Resource):
     @auth_token_required
     def get(self, user_id):
@@ -34,7 +34,7 @@ class UserResource(Resource):
     def delete(self, user_id):
         return UserService.delete_user(user_id)
 
-# 4. Patient History Resource
+
 class PatientHistoryResource(Resource):
     @auth_token_required
     def get(self, user_id):
@@ -61,10 +61,10 @@ class PatientHistoryResource(Resource):
         history.sort(key=lambda x: x['date'], reverse=True)
         return history, 200
 
-# 5. Public Doctor List (For Patients)
+
 class PublicDoctorListResource(Resource):
     @auth_token_required
-    @cache.cached(timeout=600, key_prefix='public_doctors_list') # <--- CACHE THIS
+    @cache.cached(timeout=600, key_prefix='public_doctors_list') 
     def get(self):
         """ 
         GET /api/public/doctors 
@@ -79,11 +79,11 @@ class ExportHistoryResource(Resource):
         Trigger the async CSV export job.
         URL: /api/export/history
         """
-        # --- FIX: Import the task INSIDE the function ---
+        
         from tasks import export_patient_history 
-        # ------------------------------------------------
+        
 
-        # Now it is defined and can be used
+        
         export_patient_history.delay(current_user.id, current_user.email)
         
         return {"message": "Export started! You will receive an email shortly."}, 200

@@ -2,7 +2,7 @@ from flask import request
 from flask_restful import Resource
 from services.treatment_service import TreatmentService
 
-# --- HELPER ---
+
 def treatment_to_dict(t):
     if not t: return {}
     return {
@@ -12,19 +12,18 @@ def treatment_to_dict(t):
         "prescription": t.prescription,
         "notes": t.notes,
         "next_visit_suggested": str(t.next_visit_suggested) if t.next_visit_suggested else None,
-        # Include Appointment details for context
         "patient_name": t.appointment.patient.user.name if t.appointment.patient else "Unknown",
         "doctor_name": t.appointment.doctor.user.name if t.appointment.doctor else "Unknown"
     }
 
-# --- LIST / CREATE ---
+
 class TreatmentListResource(Resource):
     
     def post(self):
         """ POST /api/treatments """
         data = request.get_json()
         
-        # Validation
+       
         if not data.get('appointment_id') or not data.get('diagnosis'):
             return {"message": "Appointment ID and Diagnosis are required."}, 400
 
@@ -41,7 +40,7 @@ class TreatmentListResource(Resource):
 
         return treatment_to_dict(treatment), 201
 
-# --- SINGLE ITEM ---
+
 class TreatmentResource(Resource):
     
     def get(self, t_id):

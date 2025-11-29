@@ -77,7 +77,6 @@
                     <div class="d-flex align-items-center gap-3 p-4 rounded-4 shadow-sm bg-white">
                         <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
                                  style="width:64px;height:64px;background:linear-gradient(135deg,#20c997,#0dcaf0);color:white;font-size:1.25rem;box-shadow:0 8px 20px rgba(32,201,151,0.12);">
-                            <!-- patients / users icon -->
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <path d="M16 11a3 3 0 1 0-6 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
                                 <path d="M21 21v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -94,7 +93,6 @@
                     <div class="d-flex align-items-center gap-3 p-4 rounded-4 shadow-sm bg-white">
                         <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
                                  style="width:64px;height:64px;background:linear-gradient(135deg,#ff7b00,#ff4d6d);color:white;font-size:1.25rem;box-shadow:0 8px 20px rgba(255,123,0,0.12);">
-                            <!-- 24/7 support / headset icon -->
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <path d="M3 13a9 9 0 1 1 18 0v3a2 2 0 0 1-2 2h-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
                                 <path d="M7 15v2a1 1 0 0 0 1 1h.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -109,7 +107,6 @@
                 </div>
             </div>
 
-            <!-- optional micro-copy -->
             <div class="text-center mt-3">
                 <small class="text-muted">Trusted by clinics and hospitals worldwide — secure, compliant, and easy to scale.</small>
             </div>
@@ -186,17 +183,14 @@ const features = ref([
 </script>
 
 <style scoped>
-/* Modern typography tweak */
 .ls-tight {
   letter-spacing: -1px;
 }
 
-/* Blur effect behind hero image */
 .blur-bg {
   filter: blur(60px);
 }
 
-/* Feature Card Hover Effect */
 .hover-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -206,7 +200,6 @@ const features = ref([
   box-shadow: 0 1rem 3rem rgba(0,0,0,.075) !important;
 }
 
-/* Button Lift Effect */
 .hover-lift {
   transition: transform 0.2s;
 }
@@ -214,7 +207,6 @@ const features = ref([
   transform: translateY(-3px);
 }
 
-/* CTA Button Scale Effect */
 .hover-scale {
   transition: transform 0.2s;
 }

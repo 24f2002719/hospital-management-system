@@ -89,9 +89,8 @@ import api from '@/utils/api';
 
 const loading = ref(false);
 const schedule = ref([]);
-const slotDuration = ref(60); // Default 60 minutes
+const slotDuration = ref(60); 
 
-// 1. Initialize Next 7 Days
 const initSchedule = () => {
   const days = [];
   const today = new Date();
@@ -102,8 +101,8 @@ const initSchedule = () => {
     
     days.push({
       displayDate: d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
-      dbDate: d.toISOString().split('T')[0], // YYYY-MM-DD
-      active: i < 5, // Default Mon-Fri active
+      dbDate: d.toISOString().split('T')[0], 
+      active: i < 5, 
       startTime: "09:00",
       endTime: "17:00"
     });
@@ -111,21 +110,18 @@ const initSchedule = () => {
   schedule.value = days;
 };
 
-// 2. Helper: Convert Time "09:00" to Minutes (540)
 const toMinutes = (timeStr) => {
   if (!timeStr) return 0;
   const [h, m] = timeStr.split(':').map(Number);
   return h * 60 + m;
 };
 
-// 3. Helper: Convert Minutes (540) to Time "09:00"
 const toTimeStr = (mins) => {
   const h = Math.floor(mins / 60);
   const m = mins % 60;
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 };
 
-// 4. Core Logic: Generate Slots Array from Range
 const generateSlotsPreview = (start, end) => {
   if (!start || !end) return [];
   
@@ -136,7 +132,6 @@ const generateSlotsPreview = (start, end) => {
   const slots = [];
   let current = startMins;
 
-  // Loop: Add slot if (current + duration) <= end time
   while (current + duration <= endMins) {
     slots.push(toTimeStr(current));
     current += duration;
@@ -145,19 +140,16 @@ const generateSlotsPreview = (start, end) => {
   return slots;
 };
 
-// 5. Count slots for UI Badge
 const countSlots = (day) => {
   return generateSlotsPreview(day.startTime, day.endTime).length;
 };
 
-// 6. Save to Backend (UPDATED)
 const saveAvailability = async () => {
   loading.value = true;
   
   try {
     const payload = [];
 
-    // Loop through days and prepare data for backend
     for (const day of schedule.value) {
       if (day.active) {
         const slotArray = generateSlotsPreview(day.startTime, day.endTime);
@@ -165,8 +157,8 @@ const saveAvailability = async () => {
 
         if (slotString) {
           payload.push({
-            date: day.dbDate, // "2025-11-28"
-            slots: slotString // "09:00,10:00..."
+            date: day.dbDate, 
+            slots: slotString 
           });
         }
       }
@@ -178,7 +170,6 @@ const saveAvailability = async () => {
       return;
     }
 
-    // Send the array to the backend endpoint we created
     await api.post('/doctor/availability', payload);
     
     alert("Availability schedule updated successfully! Patients can now book these slots.");

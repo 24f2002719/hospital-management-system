@@ -10,17 +10,16 @@ class AppointmentService:
         """
         Returns appointments filtered by the logged-in user's role.
         """
-        # 1. Admin: See EVERYTHING
+    
         if current_user.has_role('admin'):
             return Appointment.query.all()
 
-        # 2. Doctor: See ONLY their own appointments
+       
         elif current_user.has_role('doctor'):
             if not current_user.doctor_profile:
                 return [] 
             return Appointment.query.filter_by(doctor_id=current_user.doctor_profile.id).all()
 
-        # 3. Patient: See ONLY their own appointments
         elif current_user.has_role('patient'):
             if not current_user.patient_profile:
                 return []
@@ -34,19 +33,19 @@ class AppointmentService:
 
     @staticmethod
     def book_appointment(patient_user_id, doctor_id, date_str, time_str):
-        # 1. Find Patient Profile using the User ID
+
         patient = Patient.query.filter_by(user_id=patient_user_id).first()
         
         if not patient:
             return None, "Patient profile not found. Please contact support."
         
-        # 2. Parse Date
+       
         try:
             appt_date = datetime.strptime(date_str, '%Y-%m-%d').date()
         except ValueError:
             return None, "Invalid date format. Use YYYY-MM-DD."
 
-        # 3. Check Availability
+      
         availability = DoctorAvailability.query.filter_by(
             doctor_id=doctor_id, 
             available_date=appt_date
@@ -59,7 +58,6 @@ class AppointmentService:
         if time_str not in available_slots:
             return None, f"Doctor is not available at {time_str}."
 
-        # 4. Create Appointment Object
         new_appt = Appointment(
             patient_id=patient.id,
             doctor_id=doctor_id,
@@ -72,7 +70,7 @@ class AppointmentService:
             db.session.add(new_appt)
             db.session.commit()
             
-            # Refresh to get the generated ID and formatted date back from DB
+          
             db.session.refresh(new_appt)
             
             return new_appt, "Appointment booked successfully."
@@ -89,10 +87,10 @@ class AppointmentService:
         if not appt:
             return None, "Appointment not found"
 
-        # Update Status
+       
         if 'status' in data:
             try:
-                # Handle Enum conversion safely
+               
                 status_str = data['status']
                 if status_str in AppointmentStatus._value2member_map_:
                     appt.status = AppointmentStatus(status_str)
@@ -101,14 +99,14 @@ class AppointmentService:
             except ValueError:
                 return None, "Invalid Status."
 
-        # Update Date
+      
         if 'date' in data:
             try:
                 appt.appointment_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
             except ValueError:
                 return None, "Invalid date format."
 
-        # Update Time
+     
         if 'time' in data:
             appt.appointment_time = data['time']
 
@@ -146,7 +144,7 @@ class AppointmentService:
         except ValueError:
             return [], "Invalid date format"
 
-        # 1. Get Doctor's Schedule for that day
+    
         schedule = DoctorAvailability.query.filter_by(
             doctor_id=doctor_id, 
             available_date=target_date
@@ -155,10 +153,10 @@ class AppointmentService:
         if not schedule:
             return [], "Doctor is not working on this date."
 
-        # Convert string "09:00,10:00" to list ["09:00", "10:00"]
+    
         all_slots = [s.strip() for s in schedule.available_slots.split(',') if s.strip()]
 
-        # 2. Get Booked Slots
+      
         booked_appts = Appointment.query.filter_by(
             doctor_id=doctor_id,
             appointment_date=target_date
@@ -166,22 +164,22 @@ class AppointmentService:
         
         booked_times = {appt.appointment_time for appt in booked_appts}
 
-        # 3. Filter Logic
+     
         final_slots = []
         now = datetime.now()
         is_today = (target_date == now.date())
 
         for slot in all_slots:
-            # A. Remove if booked
+            
             if slot in booked_times:
                 continue
             
-            # B. Remove if in the past (only if date is today)
+           
             if is_today:
                 try:
                     slot_dt = datetime.strptime(f"{date_str} {slot}", '%Y-%m-%d %H:%M')
                     if slot_dt < now:
-                        continue # Time has passed
+                        continue 
                 except ValueError:
                     pass 
 
@@ -200,20 +198,20 @@ class AppointmentService:
                 date_str = item.get('date')
                 slots_str = item.get('slots')
                 
-                # Parse date
+               
                 date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
 
-                # Check if entry exists
+                
                 existing = DoctorAvailability.query.filter_by(
                     doctor_id=doctor_id, 
                     available_date=date_obj
                 ).first()
 
                 if existing:
-                    # Update existing
+                   
                     existing.available_slots = slots_str
                 else:
-                    # Create new
+                    
                     new_avail = DoctorAvailability(
                         doctor_id=doctor_id,
                         available_date=date_obj,

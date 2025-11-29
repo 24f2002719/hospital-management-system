@@ -3,7 +3,6 @@ import api from "@/utils/api";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
-    // matches the key used in your LoginPage.vue
     token: localStorage.getItem("token") || null, 
     user: (() => {
       try {
@@ -18,10 +17,8 @@ export const useAuthStore = defineStore("auth", {
   getters: {
     isAuthenticated: (state) => !!state.token,
     
-    // Helper to get the user's name
     userName: (state) => state.user?.name || 'User',
 
-    // Role Checks (Your backend sends roles as an array: ["admin"])
     roles: (state) => state.user?.roles || [],
     isAdmin: (state) => state.user?.roles?.includes("admin"),
     isDoctor: (state) => state.user?.roles?.includes("doctor"),
@@ -48,10 +45,8 @@ export const useAuthStore = defineStore("auth", {
     },
 
     async login(email, password) {
-      // Uses your utils/api.js
       const data = await api.post("/auth/login", { email, password });
       
-      // Your Flask backend returns: { user: { token: "...", id: 1, ... } }
       if (data && data.user && data.user.token) {
         this.setToken(data.user.token);
         this.setUser(data.user);
@@ -61,16 +56,12 @@ export const useAuthStore = defineStore("auth", {
     },
 
     async register(userData) {
-      // userData includes name, email, password, address, etc.
       await api.post("/auth/register", userData);
-      // We don't log them in automatically after register, 
-      // we usually send them to login page.
     },
 
     logout() {
       this.setToken(null);
       this.setUser(null);
-      // Optional: Redirect to login or reload page
       window.location.href = '/login'; 
     },
   },

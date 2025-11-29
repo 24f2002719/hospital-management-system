@@ -70,7 +70,6 @@ const authStore = useAuthStore();
 </script>
 
 <style scoped>
-/* Define the active style (Blue background) */
 .nav-pills .nav-link.active { 
   background-color: #0d6efd; 
   color: white; 

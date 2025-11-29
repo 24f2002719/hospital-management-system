@@ -9,7 +9,7 @@
             <div class="d-flex justify-content-between align-items-end mt-3">
               <h2 class="display-4 fw-bold mb-0">{{ stats.doctors }}</h2>
               <div class="p-2 bg-white bg-opacity-25 rounded-circle">
-                <span class="fs-4">👨‍⚕️</span>
+                <span class="fs-4"></span>
               </div>
             </div>
           </div>
@@ -24,7 +24,7 @@
             <div class="d-flex justify-content-between align-items-end mt-3">
               <h2 class="display-4 fw-bold mb-0">{{ stats.patients }}</h2>
               <div class="p-2 bg-white bg-opacity-25 rounded-circle">
-                <span class="fs-4">🏥</span>
+                <span class="fs-4"></span>
               </div>
             </div>
           </div>
@@ -39,7 +39,7 @@
             <div class="d-flex justify-content-between align-items-end mt-3">
               <h2 class="display-4 fw-bold mb-0">{{ stats.appointments }}</h2>
               <div class="p-2 bg-white bg-opacity-25 rounded-circle">
-                <span class="fs-4">📅</span>
+                <span class="fs-4"></span>
               </div>
             </div>
           </div>
@@ -85,7 +85,7 @@
       <div class="col-12">
         <div class="card border-0 shadow-sm rounded-4">
           <div class="card-header bg-white py-3 border-0">
-            <h5 class="fw-bold mb-0">🚀 Quick Actions</h5>
+            <h5 class="fw-bold mb-0">Quick Actions</h5>
           </div>
           <div class="card-body">
             <div class="d-flex gap-3">
@@ -107,7 +107,7 @@
 import { ref, onMounted } from 'vue';
 import api from '@/utils/api';
 
-// Chart.js Imports
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -123,7 +123,7 @@ import { Line, Pie } from 'vue-chartjs';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
 
-// State
+
 const stats = ref({ doctors: 0, patients: 0, appointments: 0 });
 const chartsLoaded = ref(false);
 const lineChartData = ref(null);
@@ -142,7 +142,7 @@ const pieOptions = {
 
 onMounted(async () => {
   try {
-    // 1. Fetch Stats Cards Data
+    
     const users = await api.get('/users');
     const appts = await api.get('/appointments');
     
@@ -150,10 +150,9 @@ onMounted(async () => {
     stats.value.patients = users.filter(u => u.roles.includes('patient')).length;
     stats.value.appointments = Array.isArray(appts) ? appts.length : 0;
 
-    // 2. Fetch Analytics Data (For Charts)
+    
     const analytics = await api.get('/admin/analytics');
     
-    // Prepare Line Chart
     lineChartData.value = {
       labels: analytics.line.labels,
       datasets: [{
@@ -161,14 +160,13 @@ onMounted(async () => {
         backgroundColor: '#0d6efd',
         borderColor: '#0d6efd',
         data: analytics.line.data,
-        tension: 0.4, // smooth curve
+        tension: 0.4, 
         pointBackgroundColor: '#fff',
         pointBorderColor: '#0d6efd',
         pointRadius: 5
       }]
     };
 
-    // Prepare Pie Chart
     pieChartData.value = {
       labels: analytics.pie.labels,
       datasets: [{

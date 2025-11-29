@@ -2,7 +2,7 @@ from flask import request
 from flask_restful import Resource
 from services.specialization_service import SpecializationService
 
-# --- HELPER: Manual Dictionary ---
+
 def spec_to_dict(spec):
     return {
         "id": spec.id,
@@ -11,7 +11,6 @@ def spec_to_dict(spec):
         "created_at": str(spec.created_at)
     }
 
-# --- LIST RESOURCE (GET ALL, POST NEW) ---
 class SpecializationListResource(Resource):
     
     def get(self):
@@ -36,7 +35,7 @@ class SpecializationListResource(Resource):
 
         return spec_to_dict(spec), 201
 
-# --- SINGLE RESOURCE (GET ONE, PUT, DELETE) ---
+
 class SpecializationResource(Resource):
     
     def get(self, spec_id):

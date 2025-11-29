@@ -32,7 +32,7 @@ const router = createRouter({
       component: AdminLayout,
       meta: { requiresAuth: true, role: 'admin' },
       children: [
-        { path: '', redirect: '/admin/dashboard' }, // Default redirect
+        { path: '', redirect: '/admin/dashboard' }, 
         { path: 'dashboard', component: AdminDashboard },
         { path: 'doctors', component: AdminDoctors },
         { path: 'patients', component: AdminPatients },
@@ -52,7 +52,7 @@ const router = createRouter({
       ]
     },
     {
-      path: '/dashboard', // Default patient path
+      path: '/dashboard', 
       component: PatientLayout,
       meta: { requiresAuth: true, role: 'patient' },
       children: [
@@ -66,34 +66,28 @@ const router = createRouter({
       path: '/profile', 
       name: 'Profile', 
       component: ProfilePage, 
-      meta: { requiresAuth: true } // Protect this route
+      meta: { requiresAuth: true } 
     },
   ],
 })
 
-// --- GLOBAL NAVIGATION GUARD ---
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   
-  // 1. Check if user is trying to visit Login/Home while already logged in
   if (to.meta.redirectIfLoggedIn && authStore.isAuthenticated) {
-    // Redirect them to their correct dashboard instead
     if (authStore.isAdmin) return next('/admin/dashboard');
     if (authStore.isDoctor) return next('/doctor/dashboard');
-    return next('/dashboard'); // Patient
+    return next('/dashboard'); 
   }
 
-  // 2. Standard Auth Guard (Protect Admin/Patient/Doctor routes)
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return next('/login');
   }
-  // 2. Check for Admin Role
   if (to.meta.role === 'admin' && !authStore.isAdmin) {
     alert("Access Denied: Admins Only");
     return next('/');
   }
 
-  // 3. Role Guard (Protect Admin pages from Patients, etc.)
   if (to.meta.role) {
     const userRoles = authStore.roles || [];
     if (!userRoles.includes(to.meta.role)) {

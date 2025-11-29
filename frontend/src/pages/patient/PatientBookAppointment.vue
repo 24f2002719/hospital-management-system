@@ -175,19 +175,16 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 
-// Data
 const doctors = ref([]);
 const specializations = ref([]);
 const searchName = ref('');
 const searchSpec = ref('');
 
-// Modals
 const bookingModalRef = ref(null);
 const detailsModalRef = ref(null);
 let bookingModalInstance = null;
 let detailsModalInstance = null;
 
-// State
 const selectedDoctor = ref(null);
 const profileDoctor = ref(null);
 const selectedDate = ref('');
@@ -234,7 +231,6 @@ const openBookingModal = (doc) => {
   bookingModalInstance.show();
 };
 
-// --- FIX: FETCH REAL SLOTS FROM BACKEND ---
 const fetchSlots = async () => {
   if (!selectedDate.value) return;
   
@@ -244,10 +240,8 @@ const fetchSlots = async () => {
   slotMessage.value = '';
   
   try {
-    // 1. Call Backend API
     const res = await api.get(`/doctors/${selectedDoctor.value.id}/slots?date=${selectedDate.value}`);
     
-    // 2. Update UI
     if (res.slots && res.slots.length > 0) {
       availableSlots.value = res.slots;
     } else {

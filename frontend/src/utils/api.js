@@ -1,13 +1,10 @@
-// Pointing to your Flask Backend
 const baseURL = "http://127.0.0.1:5000/api";
 
 const api = {
   async request(endpoint, options = {}) {
-    // Ensure endpoint starts with a slash
     const path = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
     const url = `${baseURL}${path}`;
     
-    // 1. Get Token (Updated to match your LoginPage key)
     const token = localStorage.getItem("token");
 
     const headers = {
@@ -15,7 +12,6 @@ const api = {
       ...options.headers,
     };
 
-    // 2. Add Authentication Header (Matches Flask-Security config)
     if (token) {
       headers["Authentication-Token"] = token;
     }
@@ -28,29 +24,21 @@ const api = {
     try {
       const response = await fetch(url, config);
 
-      // 3. Handle Unauthorized (401) - Token expired or invalid
       if (response.status === 401) {
-        // Clear data so Navbar updates correctly
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         
-        // Optional: Force reload or redirect to login
-        // window.location.href = '/login'; 
         
         throw new Error("Session expired. Please login again.");
       }
 
-      // 4. Handle other HTTP Errors
       if (!response.ok) {
         let errorData = {};
         try {
           errorData = await response.json();
         } catch (e) {
-          // If response isn't JSON, ignore
         }
         
-        // Construct error message from Flask response
-        // Flask usually sends { "message": "..." } or { "error": "..." }
         const errorMessage = errorData.message || errorData.error || `HTTP error! status: ${response.status}`;
         
         const err = new Error(errorMessage);
@@ -58,7 +46,6 @@ const api = {
         throw err;
       }
 
-      // 5. Handle Success (204 No Content vs JSON)
       if (response.status === 204) return null;
       
       const text = await response.text();
@@ -67,7 +54,7 @@ const api = {
       try {
         return JSON.parse(text);
       } catch (e) {
-        return text; // Fallback if server sends plain text
+        return text; 
       }
 
     } catch (error) {
@@ -76,7 +63,6 @@ const api = {
     }
   },
 
-  // --- Convenience Methods ---
 
   get(endpoint, options = {}) {
     return this.request(endpoint, { ...options, method: "GET" });

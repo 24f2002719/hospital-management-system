@@ -146,7 +146,6 @@ const modalRef = ref(null);
 let modalInstance = null;
 
 const isEdit = ref(false);
-// Added experience and bio to form
 const form = ref({ 
   id: null, 
   name: '', 
@@ -192,7 +191,6 @@ const toggleStatus = async (doc) => {
 const openModal = (doc = null) => {
   isEdit.value = !!doc;
   if (doc) {
-    // Populate with existing data (including bio/exp)
     form.value = { 
       ...doc, 
       password: '',
@@ -200,7 +198,6 @@ const openModal = (doc = null) => {
       bio: doc.bio || ''
     };
   } else {
-    // Reset form
     form.value = { 
       name: '', email: '', password: '', specialization: '', address: '', 
       pincode: '000000', experience: 0, bio: '' 

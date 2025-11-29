@@ -74,7 +74,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useRouter } from 'vue-router'; // Import Router
+import { useRouter } from 'vue-router'; 
 import api from '@/utils/api';
 
 const router = useRouter();
@@ -96,7 +96,6 @@ const getIcon = (name) => {
   return map[name] || '⚕️';
 };
 
-// Navigation Function
 const goToBooking = (specName) => {
   router.push({ path: '/book-appointment', query: { spec: specName } });
 };

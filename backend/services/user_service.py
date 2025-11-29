@@ -39,7 +39,7 @@ class UserService:
             exp = 0
             bio = ""
 
-            # Check if user is a doctor to get specific fields
+           
             if user.doctor_profile:
                 user_type = "Doctor"
                 spec = user.doctor_profile.specialization.name
@@ -92,14 +92,14 @@ class UserService:
             doctor_role = datastore.find_role('doctor')
             datastore.add_role_to_user(user, doctor_role)
             
-            # --- UPDATED: Save Experience & Bio ---
+           
             new_doc = Doctor(
                 user_id=user.id, 
                 specialization_id=specialization.id,
                 experience_years=data.get('experience', 0),
                 bio=data.get('bio', '')
             )
-            # --------------------------------------
+           
 
             db.session.add(new_doc)
             db.session.commit()
@@ -133,10 +133,10 @@ class UserService:
 
         if user.doctor_profile:
             resp['specialization'] = user.doctor_profile.specialization.name
-            # --- NEW FIELDS ---
+          
             resp['experience'] = user.doctor_profile.experience_years
             resp['bio'] = user.doctor_profile.bio
-            # ------------------
+            
         
         if user.patient_profile:
             resp['contact_info'] = user.patient_profile.contact_info
@@ -164,19 +164,19 @@ class UserService:
             if is_admin:
                 if 'active' in data: user.active = data['active']
                 
-            # Handle Doctor Specific Updates (Admin OR the Doctor themselves)
+            
             if user.doctor_profile:
-                # Only admin changes specialization
+                
                 if is_admin and 'specialization' in data:
                     spec = Specialization.query.filter_by(name=data['specialization']).first()
                     if spec: user.doctor_profile.specialization = spec
                 
-                # --- NEW: Update Bio & Experience ---
+                
                 if 'experience' in data:
                     user.doctor_profile.experience_years = data['experience']
                 if 'bio' in data:
                     user.doctor_profile.bio = data['bio']
-                # ------------------------------------
+                
 
             db.session.commit()
             return {"message": "User updated successfully"}, 200

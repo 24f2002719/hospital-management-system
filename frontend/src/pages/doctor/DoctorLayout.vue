@@ -49,7 +49,7 @@ const authStore = useAuthStore();
 </script>
 
 <style scoped>
-.nav-pills .nav-link.active { background-color: #198754; color: white; } /* Green for Doctors */
+.nav-pills .nav-link.active { background-color: #198754; color: white; } 
 .nav-pills .nav-link { color: #6c757d; }
 .nav-pills .nav-link:hover:not(.active) { background-color: #e9ecef; color: #198754; }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }

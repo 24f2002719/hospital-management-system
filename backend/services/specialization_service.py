@@ -5,12 +5,12 @@ class SpecializationService:
 
     @staticmethod
     def create_specialization(name, description):
-        # 1. Check if it already exists (Optional optimization, but DB will catch it too)
+
         existing = Specialization.query.filter_by(name=name).first()
         if existing:
             return None, f"Specialization '{name}' already exists."
 
-        # 2. Create Object
+      
         new_spec = Specialization(
             name=name,
             description=description
@@ -20,7 +20,7 @@ class SpecializationService:
             db.session.add(new_spec)
             db.session.commit()
             
-            # 🔥 Refresh to get the generated ID
+           
             db.session.refresh(new_spec)
             return new_spec, "Specialization created successfully."
             
@@ -67,8 +67,7 @@ class SpecializationService:
         if not spec:
             return False, "Specialization not found"
         
-        # Check if any doctors are using this specialization before deleting?
-        # For now, we will let SQL handle foreign key errors if they exist.
+        
         try:
             db.session.delete(spec)
             db.session.commit()

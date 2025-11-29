@@ -8,7 +8,6 @@ import csv
 from io import StringIO
 from sqlalchemy import func
 
-# Import configured mail instance from app.py
 
 
 try:
@@ -18,9 +17,7 @@ except Exception:
     _HAS_WEASY = False
 
 
-# -------------------------------------
-# 1. TRIGGERED JOB: EXPORT CSV
-# -------------------------------------
+
 @celery.task(name='export_patient_history')
 def export_patient_history(user_id, email):
     """Generates CSV of past treatments and emails it"""
@@ -45,7 +42,7 @@ def export_patient_history(user_id, email):
                 ])
 
         msg = Message(
-            subject="Your Medical History Export 📂",
+            subject="Your Medical History Export",
             recipients=[email],
             body="Please find your medical history attached."
         )
@@ -55,19 +52,17 @@ def export_patient_history(user_id, email):
         return f"CSV exported for {email}"
 
 
-# -------------------------------------
-# 2. DAILY REMINDER
-# -------------------------------------
+
 @celery.task(name='send_daily_reminders')
 def send_daily_reminders():
     """Sends email reminders for today's appointments"""
     with current_app.app_context():
-        # get the initialized Mail extension from current_app (avoid module-level import)
+       
         mail = current_app.extensions.get("mail")
         current_app.logger.info("send_daily_reminders started - mail ext: %s", bool(mail))
 
         today = datetime.now().date()
-        # use func.date in case column is DateTime
+       
         appointments = Appointment.query.filter(
             func.date(Appointment.appointment_date) == today,
             Appointment.status == AppointmentStatus.BOOKED
@@ -92,7 +87,7 @@ def send_daily_reminders():
                     continue
 
                 msg = Message(
-                    subject="Appointment Reminder ⏰",
+                    subject="Appointment Reminder",
                     recipients=[recipient],
                     body=f"Hello {patient_user.name},\n\nReminder: You have an appointment with Dr. {getattr(appt.doctor.user, 'name', '')} today at {appt.appointment_time}.",
                     html=f"<p>Hello {patient_user.name},<br>Reminder: You have an appointment with Dr. {getattr(appt.doctor.user, 'name', '')} today at {appt.appointment_time}.</p>"
@@ -102,7 +97,7 @@ def send_daily_reminders():
                     current_app.logger.error("Mail extension is not configured - cannot send reminder for appointment %s", appt.id)
                     continue
 
-                # try-send
+              
                 mail.send(msg)
                 current_app.logger.info("Reminder sent for appointment %s to %s", appt.id, recipient)
                 count += 1
@@ -114,9 +109,7 @@ def send_daily_reminders():
         return f"Sent reminders for {count} appointments."
 
 
-# -------------------------------------
-# 3. MONTHLY REPORT (FIXED DATE FILTER & DEBUG)
-# -------------------------------------
+
 @celery.task(name='send_monthly_reports')
 def send_monthly_reports(days: int = 30):
     """
@@ -126,7 +119,7 @@ def send_monthly_reports(days: int = 30):
 
     with current_app.app_context():
         end_date = datetime.now().date()
-        # include today in the period (last `days` days)
+        
         start_date = end_date - timedelta(days=days - 1)
 
         doctors = Doctor.query.all()
@@ -135,18 +128,18 @@ def send_monthly_reports(days: int = 30):
             return "No doctors."
 
         for doc in doctors:
-            # If there's no user/email skip
+            
             if not getattr(doc, "user", None) or not getattr(doc.user, "email", None):
                 current_app.logger.info("Skipping doctor id=%s - no user/email.", getattr(doc, "id", None))
                 continue
 
-            # Use func.date so both Date and DateTime columns match correctly
+          
             appts = Appointment.query.filter(
                 Appointment.doctor_id == doc.id,
                 func.date(Appointment.appointment_date).between(start_date, end_date)
             ).order_by(Appointment.appointment_date, Appointment.appointment_time).all()
 
-            # Debugging info - count all and matched appointment ids
+  
             total_db_count = Appointment.query.filter_by(doctor_id=doc.id).count()
             matched_count = len(appts)
             current_app.logger.info(
@@ -158,17 +151,16 @@ def send_monthly_reports(days: int = 30):
                 current_app.logger.info("No appointments for %s between %s and %s", doc.user.email, start_date, end_date)
                 continue
 
-            # Summary counters
             total_appts = matched_count
             status_counts = {}
             revenue_total = 0.0
 
-            # Build CSV
+         
             si = StringIO()
             cw = csv.writer(si)
             cw.writerow(['Date', 'Time', 'Patient', 'Status', 'Diagnosis', 'Prescription'])
 
-            # Build HTML rows
+            
             rows_html = ""
             for a in appts:
                 status_name = getattr(a, "status", None)
@@ -197,10 +189,10 @@ def send_monthly_reports(days: int = 30):
                 </tr>
                 """
 
-                # update counters
+              
                 status_counts[status_str] = status_counts.get(status_str, 0) + 1
 
-            # Build full HTML
+            
             summary_html = "<ul>"
             summary_html += f"<li>Total Appointments: {total_appts}</li>"
             for st, cnt in status_counts.items():
@@ -228,7 +220,7 @@ def send_monthly_reports(days: int = 30):
               </body>
             </html>"""
 
-            # prepare message
+        
             text_body = f"Dr. {doc.user.name}, monthly summary: {total_appts} appointments."
 
             msg = Message(
@@ -238,11 +230,11 @@ def send_monthly_reports(days: int = 30):
                 html=html_content
             )
 
-            # attach CSV
+     
             csv_filename = f"monthly_report_doctor_{doc.id}.csv"
             msg.attach(csv_filename, "text/csv", si.getvalue())
 
-            # convert to PDF if weasy is available
+            
             pdf_bytes = None
             if _HAS_WEASY:
                 try:
@@ -277,10 +269,10 @@ def send_payment_invoice(appt_id):
         patient_email = appt.patient.user.email
         patient_name = appt.patient.user.name
         doctor_name = appt.doctor.user.name
-        amount = getattr(appt, 'amount', 500) # Default to 500 if missing
+        amount = getattr(appt, 'amount', 500) 
         date = appt.appointment_date
         
-        # HTML Invoice Template
+        
         html_content = f"""
         <html>
         <body style="font-family: Arial, sans-serif; color: #333;">

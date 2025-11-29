@@ -155,14 +155,12 @@ let modalInstance = null;
 const selectedAppt = ref(null);
 const form = ref({ diagnosis: '', prescription: '', notes: '' });
 
-// Filter logic: Search by Patient Name
 const filteredAppointments = computed(() => 
   appointments.value.filter(a => a.patient_name.toLowerCase().includes(search.value.toLowerCase()))
 );
 
 const fetchData = async () => {
   try {
-    // Backend now filters this automatically based on logged-in Doctor ID
     const data = await api.get('/appointments');
     appointments.value = Array.isArray(data) ? data : [];
   } catch (e) { console.error(e); }
@@ -176,7 +174,6 @@ const openConsultationModal = (appt) => {
 
 const saveHistory = async () => {
   try {
-    // 1. Create Treatment (This updates the history)
     await api.post('/treatments', {
       appointment_id: selectedAppt.value.id,
       diagnosis: form.value.diagnosis,
@@ -184,12 +181,11 @@ const saveHistory = async () => {
       notes: form.value.notes
     });
 
-    // 2. Mark Appointment as Completed
     await api.put(`/appointments/${selectedAppt.value.id}`, { status: 'Completed' });
 
     alert("Patient history updated successfully!");
     modalInstance.hide();
-    fetchData(); // Refresh list
+    fetchData(); 
   } catch (e) {
     alert("Error saving: " + e.message);
   }
@@ -198,7 +194,7 @@ const saveHistory = async () => {
 const cancelAppt = async (id) => {
   if(!confirm("Are you sure you want to cancel this appointment?")) return;
   try {
-    await api.delete(`/appointments/${id}`); // Or update status to 'Cancelled'
+    await api.delete(`/appointments/${id}`); 
     fetchData();
   } catch(e) { alert(e.message); }
 };
