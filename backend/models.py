@@ -76,6 +76,9 @@ class Appointment(BaseModel):
     appointment_time = db.Column(db.String(5), nullable=False) # HH:MM format
     status = db.Column(Enum(AppointmentStatus), default=AppointmentStatus.BOOKED)
 
+    is_paid = db.Column(db.Boolean, default=False)
+    amount = db.Column(db.Integer, default=500) # Default fee 500
+
     treatment = db.relationship('Treatment', backref='appointment', uselist=False)
     
     __table_args__ = (UniqueConstraint('doctor_id', 'appointment_date', 'appointment_time', name='_doctor_time_uc'),)

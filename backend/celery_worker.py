@@ -1,5 +1,6 @@
 from app import app
 from celery import Celery, Task
+from datetime import timedelta
 
 def make_celery(app):
     # 1. Initialize Celery with the App Name
@@ -34,6 +35,10 @@ celery = make_celery(app)
 from celery.schedules import crontab
 
 celery.conf.beat_schedule = {
+    'test-heartbeat': {
+        'task': 'send_daily_reminders', # We reuse an existing task
+        'schedule': timedelta(seconds=30), 
+    },
     'daily-reminder-every-morning': {
         'task': 'send_daily_reminders',
         'schedule': crontab(hour=8, minute=0),

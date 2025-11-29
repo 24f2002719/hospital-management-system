@@ -5,7 +5,8 @@ from resources.appointment_resource import AppointmentListResource, AppointmentR
 from resources.specialization_resource import SpecializationListResource, SpecializationResource
 from resources.treatment_resource import TreatmentListResource, TreatmentResource
 from resources.user_resource import UserListResource,UserResource, DoctorCreationResource, PatientHistoryResource,PublicDoctorListResource,ExportHistoryResource
-
+from resources.analytics_resource import AdminAnalyticsResource
+from resources.payment_resource import PaymentResource
 
 
 
@@ -47,4 +48,7 @@ api.add_resource(PublicDoctorListResource, '/public/doctors')
 api.add_resource(ExportHistoryResource, '/export/history')
 api.add_resource(DoctorAvailabilityResource, '/doctors/<int:doctor_id>/slots')
 api.add_resource(DoctorAvailabilityManageResource, '/doctor/availability')
+
+api.add_resource(AdminAnalyticsResource, '/admin/analytics')
+api.add_resource(PaymentResource, '/pay/<int:appt_id>')
 

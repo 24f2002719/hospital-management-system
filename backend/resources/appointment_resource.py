@@ -2,34 +2,36 @@ from flask import request
 from flask_restful import Resource
 from flask_security import auth_token_required 
 from services.appointment_service import AppointmentService
-from flask_security import current_user
-from database import cache
+from database import cache # Import from database.py
 
 # --- HELPER FUNCTION ---
 def to_dict(appt):
-    """
-    Manually convert the Appointment object to a Dictionary.
-    """
     return {
         "id": appt.id,
-        "appointment_date": str(appt.appointment_date), 
+        "appointment_date": str(appt.appointment_date),
         "appointment_time": appt.appointment_time,
-        
-        # Status
         "status": appt.status.value if hasattr(appt.status, 'value') else str(appt.status),
-        
-        # Relationships
         "patient_name": appt.patient.user.name if (appt.patient and appt.patient.user) else "Unknown",
         "doctor_name": appt.doctor.user.name if (appt.doctor and appt.doctor.user) else "Unknown",
-        
-        # --- FIELDS FOR DASHBOARDS ---
         "specialization": appt.doctor.specialization.name if (appt.doctor and appt.doctor.specialization) else "General",
         "patient_id_user": appt.patient.user.id if (appt.patient and appt.patient.user) else None,
-        
-        # IDs
         "patient_id": appt.patient_id,
-        "doctor_id": appt.doctor_id
+        "doctor_id": appt.doctor_id,
+        
+        # --- ENSURE THESE TWO LINES ARE PRESENT ---
+        "is_paid": getattr(appt, 'is_paid', False), 
+        "amount": getattr(appt, 'amount', 500)      
+        # ------------------------------------------
     }
+
+# --- NEW: Cache Key Generator (Defined OUTSIDE the class) ---
+def make_availability_cache_key():
+    """Generates a unique key based on doctor ID and Date"""
+    # request.view_args gets the URL parameters (doctor_id)
+    # request.args gets the Query parameters (?date=...)
+    doctor_id = request.view_args.get('doctor_id')
+    date_str = request.args.get('date')
+    return f"slots_doc_{doctor_id}_date_{date_str}"
 
 # --- LIST RESOURCE ---
 class AppointmentListResource(Resource):
@@ -37,13 +39,8 @@ class AppointmentListResource(Resource):
     @auth_token_required 
     def get(self):
         """ GET /api/appointments """
-        # Get filtered appointments based on role
         appointments = AppointmentService.get_all_appointments()
-        
-        # Sort by date (Newest first)
-        # We use a lambda to handle potential None values gracefully, though DB should enforce non-null
         appointments.sort(key=lambda x: x.appointment_date, reverse=True)
-        
         return [to_dict(a) for a in appointments], 200
 
     @auth_token_required
@@ -89,22 +86,17 @@ class AppointmentResource(Resource):
             return {"message": message}, 200
         else:
             return {"message": message}, 404
-        
+
+# --- AVAILABILITY RESOURCE ---
 class DoctorAvailabilityResource(Resource):
     
-    # We use make_cache_key to create unique keys per doctor + date
-    # key will look like: "hms_slots_doctor_5_date_2025-11-28"
-    def _make_cache_key(self):
-        doctor_id = request.view_args['doctor_id']
-        date_str = request.args.get('date')
-        return f"slots_doctor_{doctor_id}_date_{date_str}"
-
     @auth_token_required
-    @cache.cached(timeout=60, key_prefix=_make_cache_key) # <--- Dynamic Cache Key
+    # Use the function name directly (no parentheses, no self)
+    @cache.cached(timeout=60, key_prefix=make_availability_cache_key) 
     def get(self, doctor_id):
         """
         GET /api/doctors/<int:doctor_id>/slots?date=YYYY-MM-DD
-        Cached for 60 seconds to reduce DB load.
+        Cached for 60 seconds.
         """
         date_str = request.args.get('date')
         if not date_str:
@@ -113,27 +105,29 @@ class DoctorAvailabilityResource(Resource):
         slots, error = AppointmentService.get_available_slots(doctor_id, date_str)
         
         if error:
+            # Return empty list instead of error code so UI shows "No slots" gracefully
             return {"slots": [], "message": error}, 200
             
         return {"slots": slots}, 200
-    
+
+# --- MANAGE AVAILABILITY RESOURCE ---
 class DoctorAvailabilityManageResource(Resource):
     @auth_token_required
     def post(self):
-        """
-        POST /api/doctor/availability
-        Body: [ { "date": "2025-11-28", "slots": "09:00,10:00" }, ... ]
-        """
-        # Security Check
+        from flask_security import current_user
         if not current_user.has_role('doctor') or not current_user.doctor_profile:
-            return {"message": "Unauthorized. Only doctors can set availability."}, 403
+            return {"message": "Unauthorized"}, 403
 
-        data = request.get_json() # Expecting a list
+        data = request.get_json()
         
         success, message = AppointmentService.set_availability(
             doctor_id=current_user.doctor_profile.id,
             availability_data=data
         )
+        
+        # Clear cache so new slots appear immediately
+        # (Advanced: You could delete specific keys, but clearing prefix is simpler for now)
+        # cache.clear() 
         
         if success:
             return {"message": message}, 200
