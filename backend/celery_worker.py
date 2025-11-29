@@ -31,7 +31,7 @@ from celery.schedules import crontab
 celery.conf.beat_schedule = {
     'test-heartbeat': {
         'task': 'send_daily_reminders', 
-        'schedule': timedelta(seconds=30), 
+        'schedule': timedelta(seconds=600), 
     },
     'daily-reminder-every-morning': {
         'task': 'send_daily_reminders',

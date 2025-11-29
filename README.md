@@ -1,4 +1,4 @@
-# hospital-management-system
+# Hospital Management System
 
 hospital-management-system is a modern application project of full-stack Hospital Management System (HMS) that replaces manual registers with an efficient digital workflow. It helps hospitals manage patients, doctors, appointments, treatments, billing, and reporting.
 
